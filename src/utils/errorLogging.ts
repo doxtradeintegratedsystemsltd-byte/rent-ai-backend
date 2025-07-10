@@ -1,4 +1,5 @@
 import { Request } from 'express';
+import { Container } from 'typedi';
 import { AppErrorLogService } from '../services/AppErrorLog.service';
 
 interface ErrorLoggingOptions {
@@ -43,8 +44,8 @@ export const logError = async (
         ?.replace(/^at\s+/, '') || '';
     const func = error.stack?.split('\n')[0]?.trim() || '';
 
-    // Create database log entry
-    const appErrorLogService = new AppErrorLogService();
+    // Create database log entry using TypeDI
+    const appErrorLogService = Container.get(AppErrorLogService);
     await appErrorLogService.create({
       type,
       message: error.message,

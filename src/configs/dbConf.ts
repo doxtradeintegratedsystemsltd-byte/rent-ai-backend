@@ -1,8 +1,13 @@
 import { DataSourceOptions } from 'typeorm';
+import { useContainer } from 'typeorm';
+import { Container } from 'typedi';
 import dotenv from 'dotenv';
 import envConfig from './envConfig';
 
 dotenv.config();
+
+useContainer(Container);
+
 const username = envConfig.DB_USERNAME;
 const password = envConfig.DB_PASSWORD;
 const host = envConfig.DB_HOST;
@@ -17,11 +22,12 @@ const dbConfig: DataSourceOptions = {
   password,
   database,
   entities: [__dirname + '/../entities/*.+(ts|js)'],
-  synchronize: false,
-  logging: false,
-  ssl: {
-    rejectUnauthorized: true,
-  },
+  synchronize: true,
+  logging: true,
+  name: 'default',
+  // ssl: {
+  //   rejectUnauthorized: false,
+  // },
 };
 
 export default dbConfig;

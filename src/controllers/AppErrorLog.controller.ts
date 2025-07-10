@@ -1,16 +1,14 @@
 import { NextFunction, Request, Response } from 'express';
+import { Service } from 'typedi';
 import { successResponse } from '../utils/response'; // Adjust the import path as necessary
 import { AppErrorLogService } from '../services/AppErrorLog.service';
 import { FindOptionsWhere, ILike } from 'typeorm';
 import { AppErrorLog } from '../entities/AppErrorLog';
 import { AppErrorLogValidationTypes } from '../validations/AppErrorLog.validation';
 
+@Service()
 export class AppErrorLogController {
-  private appErrorLogService;
-
-  constructor() {
-    this.appErrorLogService = new AppErrorLogService();
-  }
+  constructor(private appErrorLogService: AppErrorLogService) {}
 
   async getAll(req: Request, res: Response, next: NextFunction) {
     try {
