@@ -109,7 +109,7 @@ const initializeApp = async () => {
     });
 
     app.get('/', (_req, res) => {
-      res.send('Welcome to Fyxn APIs.');
+      res.send('Home.');
     });
 
     app.use(NotFoundMiddleware);

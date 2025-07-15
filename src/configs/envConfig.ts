@@ -9,12 +9,13 @@ const envVarsSchema = Joi.object()
       .valid('development', 'production')
       .default('development'),
     PORT: Joi.number().required(),
-    // DB_USERNAME: Joi.string().required(),
-    // DB_PASSWORD: Joi.string(),
-    // DB_HOST: Joi.string().required(),
-    // DB_NAME: Joi.string().required(),
-    // DB_PORT: Joi.number().required(),
-    // JWT_SECRET: Joi.string().required(),
+    DB_USERNAME: Joi.string().required(),
+    DB_PASSWORD: Joi.string().optional().allow(''),
+    DB_HOST: Joi.string().required(),
+    DB_NAME: Joi.string().required(),
+    DB_PORT: Joi.number().required(),
+    JWT_SECRET: Joi.string().required(),
+    PASSWORD_SALT_ROUNDS: Joi.number().required(),
   })
   .unknown();
 
@@ -35,6 +36,7 @@ const envConfig = {
   DB_NAME: envVars.DB_NAME as string,
   DB_PORT: envVars.DB_PORT as number,
   JWT_SECRET: envVars.JWT_SECRET as string,
+  PASSWORD_SALT_ROUNDS: envVars.PASSWORD_SALT_ROUNDS as number,
 };
 
 export default envConfig;

@@ -23,11 +23,9 @@ const dbConfig: DataSourceOptions = {
   database,
   entities: [__dirname + '/../entities/*.+(ts|js)'],
   synchronize: true,
-  logging: true,
+  logging: false,
   name: 'default',
-  // ssl: {
-  //   rejectUnauthorized: false,
-  // },
+  ...(password && { ssl: { rejectUnauthorized: true } }),
 };
 
 export default dbConfig;

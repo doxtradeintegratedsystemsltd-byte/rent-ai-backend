@@ -1,4 +1,4 @@
-export function generatePassword(
+export function generateRandonString(
   length: number,
   includeUppercase?: boolean,
   includeNumbers?: boolean,

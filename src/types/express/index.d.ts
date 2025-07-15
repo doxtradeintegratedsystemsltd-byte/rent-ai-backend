@@ -1,6 +1,7 @@
-declare namespace Express {
+import { User } from '../../entities/User';
+
+declare module 'express' {
   export interface Request {
-    IntegrationPartner: any;
-    rawBody?: string;
+    user?: User;
   }
 }
