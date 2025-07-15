@@ -13,10 +13,7 @@ import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity
 import { NotFoundError } from '../configs/error';
 import { v4 } from 'uuid';
 import { getPagnation } from '../utils/pagination';
-import {
-  PaginationRequest,
-  TPaginationResponse,
-} from '../interfaces/CustomTypes';
+import { PaginationRequest, TPaginationResponse } from '../types/CustomTypes';
 
 type CustomFindOneOptions<T> = {
   relations?: FindOptionsRelations<T>;
