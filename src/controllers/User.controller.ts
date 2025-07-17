@@ -20,7 +20,7 @@ export class UserController {
   async whoAmI(req: Request, res: Response, next: NextFunction) {
     try {
       const user = req.user;
-      return successResponse(res, 'User', user);
+      return successResponse(res, 'Who am i', user);
     } catch (error) {
       return next(error);
     }

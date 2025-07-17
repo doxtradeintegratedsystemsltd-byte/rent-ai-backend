@@ -16,6 +16,9 @@ const envVarsSchema = Joi.object()
     DB_PORT: Joi.number().required(),
     JWT_SECRET: Joi.string().required(),
     PASSWORD_SALT_ROUNDS: Joi.number().required(),
+    CLOUDINARY_CLOUD_NAME: Joi.string().required(),
+    CLOUDINARY_API_KEY: Joi.string().required(),
+    CLOUDINARY_API_SECRET: Joi.string().required(),
   })
   .unknown();
 
@@ -37,6 +40,9 @@ const envConfig = {
   DB_PORT: envVars.DB_PORT as number,
   JWT_SECRET: envVars.JWT_SECRET as string,
   PASSWORD_SALT_ROUNDS: envVars.PASSWORD_SALT_ROUNDS as number,
+  CLOUDINARY_CLOUD_NAME: envVars.CLOUDINARY_CLOUD_NAME as string,
+  CLOUDINARY_API_KEY: envVars.CLOUDINARY_API_KEY as string,
+  CLOUDINARY_API_SECRET: envVars.CLOUDINARY_API_SECRET as string,
 };
 
 export default envConfig;

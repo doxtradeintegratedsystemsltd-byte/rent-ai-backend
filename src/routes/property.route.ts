@@ -25,5 +25,9 @@ router.get('/', verifyToken, (req, res, next) => {
   controller.getAll(req, res, next);
 });
 
+router.get('/:id', verifyToken, (req, res, next) => {
+  controller.getById(req, res, next);
+});
+
 const PropertyRoutes = router;
 export default PropertyRoutes;

@@ -33,4 +33,19 @@ export class PropertyController {
       return next(error);
     }
   }
+
+  async getById(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { id } = req.params;
+      const property = await this.propertyService.findById(id, {
+        relations: {
+          createdBy: true,
+        },
+      });
+
+      return successResponse(res, 'Property found', property);
+    } catch (error) {
+      return next(error);
+    }
+  }
 }

@@ -44,9 +44,6 @@ const ErrorHandlerMiddleware: ErrorRequestHandler = (
     ...(error.errors && { errors: error.errors }),
     ...(!isProduction && { trace: errorMessage }),
   });
-
-  // Continue to the next middleware (which may include the Sentry error handler)
-  next(error);
 };
 
 export default ErrorHandlerMiddleware;
