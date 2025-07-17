@@ -34,4 +34,15 @@ export class AuthController {
       return next(error);
     }
   }
+
+  async createAdmin(req: Request, res: Response, next: NextFunction) {
+    try {
+      const body = req.body as AuthValidationTypes['createAdmin'];
+      const auth = await this.authService.createAdmin(body);
+
+      return successResponse(res, 'Admin Creation Success', auth);
+    } catch (error) {
+      return next(error);
+    }
+  }
 }

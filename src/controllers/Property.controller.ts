@@ -3,6 +3,7 @@ import { Service } from 'typedi';
 import { successResponse } from '../utils/response';
 import { PropertyService } from '../services/Property.service';
 import { Property } from '../entities/Property';
+import { PropertyValidationTypes } from '../validations/Property.validation';
 
 @Service()
 export class PropertyController {
@@ -19,8 +20,14 @@ export class PropertyController {
 
   async create(req: Request, res: Response, next: NextFunction) {
     try {
-      const body = req.body;
-      const property = await this.propertyService.create(body);
+      const authUser = req.user!;
+
+      const body = req.body as PropertyValidationTypes['create'];
+      const property = await this.propertyService.createProperty(
+        body,
+        authUser
+      );
+
       return successResponse(res, 'Create Success', property);
     } catch (error) {
       return next(error);

@@ -3,6 +3,9 @@ import { Container } from 'typedi';
 import { AuthController } from '../controllers/Auth.controller';
 import Validator from '../middleware/Validator';
 import AuthValidation from '../validations/Auth.validation';
+import { verifyToken } from '../middleware/verifyToken';
+import { UserType } from '../utils/authUser';
+import { checkRole } from '../middleware/checkRole';
 
 const router = Router();
 
@@ -19,6 +22,16 @@ router.post(
 router.post('/login', Validator(AuthValidation.login), (req, res, next) => {
   controller.login(req, res, next);
 });
+
+router.post(
+  '/admin',
+  verifyToken,
+  checkRole(UserType.SUPER_ADMIN),
+  Validator(AuthValidation.createAdmin),
+  (req, res, next) => {
+    controller.createAdmin(req, res, next);
+  }
+);
 
 const AuthRoutes = router;
 export default AuthRoutes;

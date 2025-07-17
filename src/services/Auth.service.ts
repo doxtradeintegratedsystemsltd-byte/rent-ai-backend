@@ -111,4 +111,29 @@ export class AuthService extends BaseService<Auth> {
       user,
     };
   }
+
+  async createAdmin(body: AuthValidationTypes['createAdmin']) {
+    await this.checkDuplicateEmail(body.email);
+
+    const password = this.authModule.generatePassword();
+    const hashedPassword = await this.authModule.hashPassword(password);
+
+    const user = await this.userService.create({
+      firstName: body.firstName,
+      lastName: body.lastName,
+      email: body.email,
+      userType: UserType.ADMIN,
+    });
+
+    await this.create({
+      email: body.email,
+      password: hashedPassword,
+      userId: user.id,
+    });
+
+    return {
+      email: body.email,
+      password,
+    };
+  }
 }

@@ -5,11 +5,15 @@ const AuthValidation = {
     email: z.string().email(),
     firstName: z.string(),
     lastName: z.string(),
-    phoneNumber: z.string().optional(),
   }),
   login: z.object({
     email: z.string().email(),
     password: z.string(),
+  }),
+  createAdmin: z.object({
+    email: z.string().email(),
+    firstName: z.string(),
+    lastName: z.string(),
   }),
 };
 
