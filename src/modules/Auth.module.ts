@@ -43,6 +43,7 @@ export class AuthModule {
   }
 
   generatePassword() {
+    return 'password';
     return generateRandonString(8, false, true);
   }
 }
