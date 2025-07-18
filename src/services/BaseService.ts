@@ -75,13 +75,23 @@ export class BaseService<T extends ObjectLiteral> {
     return this.repository.findOneBy(options);
   }
 
-  async update(id: string, data: QueryDeepPartialEntity<T>): Promise<T | null> {
+  async update(id: string, data: QueryDeepPartialEntity<T>) {
     await this.repository.update(id, data);
     return this.findById(id);
   }
 
   async delete(id: string) {
     return this.repository.delete(id);
+  }
+
+  async softDelete(id: string) {
+    const entity = await this.findById(id);
+    return this.repository.softRemove(entity);
+  }
+
+  async restore(id: string) {
+    await this.repository.restore(id);
+    return this.findById(id);
   }
 
   async findMany(options?: FindManyOptions<T>) {

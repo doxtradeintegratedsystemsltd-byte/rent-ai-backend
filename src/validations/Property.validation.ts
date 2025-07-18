@@ -8,6 +8,13 @@ const PropertyValidation = {
     propertyAddress: z.string().optional(),
     propertyImage: z.string().optional(),
   }),
+  update: z.object({
+    propertyName: z.string().optional(),
+    propertyState: z.string().optional(),
+    propertyArea: z.string().optional(),
+    propertyAddress: z.string().optional(),
+    propertyImage: z.string().optional(),
+  }),
 };
 
 export type PropertyValidationTypes = {

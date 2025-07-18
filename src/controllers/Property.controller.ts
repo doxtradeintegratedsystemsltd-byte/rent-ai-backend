@@ -40,10 +40,38 @@ export class PropertyController {
       const property = await this.propertyService.findById(id, {
         relations: {
           createdBy: true,
+          currentLease: {
+            tenant: true,
+          },
         },
       });
 
       return successResponse(res, 'Property found', property);
+    } catch (error) {
+      return next(error);
+    }
+  }
+
+  async update(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { id } = req.params;
+      const body = req.body as PropertyValidationTypes['update'];
+
+      const property = await this.propertyService.updateProperty(id, body);
+
+      return successResponse(res, 'Property updated successfully', property);
+    } catch (error) {
+      return next(error);
+    }
+  }
+
+  async softDelete(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { id } = req.params;
+
+      const property = await this.propertyService.softDeleteProperty(id);
+
+      return successResponse(res, 'Property deleted successfully', property);
     } catch (error) {
       return next(error);
     }
