@@ -11,7 +11,18 @@ export class PropertyController {
 
   async getAll(req: Request, res: Response, next: NextFunction) {
     try {
-      const properties = await this.propertyService.findAllPaginated(req.query);
+      const properties = await this.propertyService.findAllPaginated(
+        req.query,
+        {
+          relations: {
+            createdBy: true,
+            currentLease: {
+              tenant: true,
+            },
+          },
+        }
+      );
+
       return successResponse(res, 'Returning properties', properties);
     } catch (error) {
       return next(error);

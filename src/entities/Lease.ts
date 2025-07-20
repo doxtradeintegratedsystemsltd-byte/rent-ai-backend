@@ -6,12 +6,15 @@ import {
   UpdateDateColumn,
   DeleteDateColumn,
   ManyToOne,
+  OneToMany,
   JoinColumn,
+  OneToOne,
 } from 'typeorm';
 import { Tenant } from './Tenant';
 import { Property } from './Property';
 import { RentStatus } from '../utils/lease';
 import { User } from './User';
+import { LeasePayment } from './LeasePayment';
 
 @Entity()
 export class Lease {
@@ -50,6 +53,16 @@ export class Lease {
   @ManyToOne(() => User)
   @JoinColumn({ name: 'createdById' })
   createdBy: User;
+
+  @Column({ type: 'text', nullable: true })
+  paymentId: string;
+
+  @OneToOne(() => LeasePayment)
+  @JoinColumn({ name: 'paymentId' })
+  payment: LeasePayment;
+
+  @OneToMany(() => LeasePayment, (payment) => payment.lease)
+  payments: LeasePayment[];
 
   @CreateDateColumn()
   createdAt: Date;

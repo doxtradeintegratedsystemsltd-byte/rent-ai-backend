@@ -7,6 +7,7 @@ import { UserService } from './User.service';
 import { UserType } from '../utils/authUser';
 import { BadRequestError } from '../configs/error';
 import { AuthModule } from '../modules/Auth.module';
+import { User } from '../entities/User';
 
 @Service()
 export class AuthService extends BaseService<Auth> {
@@ -30,27 +31,10 @@ export class AuthService extends BaseService<Auth> {
       throw new BadRequestError('Superadmin already exists');
     }
 
-    await this.checkDuplicateEmail(body.email);
-
-    const password = this.authModule.generatePassword();
-    const hashedPassword = await this.authModule.hashPassword(password);
-
-    const user = await this.userService.create({
-      firstName: body.firstName,
-      lastName: body.lastName,
-      email: body.email,
-      userType: UserType.SUPER_ADMIN,
-    });
-
-    await this.create({
-      email: body.email,
-      password: hashedPassword,
-      userId: user.id,
-    });
+    await this.createUser(body, UserType.SUPER_ADMIN);
 
     return {
       email: body.email,
-      password,
     };
   }
 
@@ -62,7 +46,7 @@ export class AuthService extends BaseService<Auth> {
     });
 
     if (existingUser) {
-      throw new BadRequestError('Email already exists');
+      throw new BadRequestError('User with email already exists');
     }
 
     const existingAuth = await this.findOne({
@@ -72,7 +56,7 @@ export class AuthService extends BaseService<Auth> {
     });
 
     if (existingAuth) {
-      throw new BadRequestError('Email already exists.');
+      throw new BadRequestError('User with email already exists.');
     }
   }
 
@@ -113,27 +97,37 @@ export class AuthService extends BaseService<Auth> {
   }
 
   async createAdmin(body: AuthValidationTypes['createAdmin']) {
+    await this.createUser(body, UserType.ADMIN);
+
+    return {
+      email: body.email,
+    };
+  }
+
+  async createUser(
+    body: {
+      firstName: string;
+      lastName: string;
+      email: string;
+    } & Partial<User>,
+    userType: UserType
+  ) {
     await this.checkDuplicateEmail(body.email);
 
     const password = this.authModule.generatePassword();
     const hashedPassword = await this.authModule.hashPassword(password);
 
     const user = await this.userService.create({
-      firstName: body.firstName,
-      lastName: body.lastName,
-      email: body.email,
-      userType: UserType.ADMIN,
+      ...body,
+      userType,
     });
 
-    await this.create({
+    const auth = await this.create({
       email: body.email,
       password: hashedPassword,
       userId: user.id,
     });
 
-    return {
-      email: body.email,
-      password,
-    };
+    return { user, auth };
   }
 }

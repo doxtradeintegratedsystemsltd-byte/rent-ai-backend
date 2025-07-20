@@ -2,16 +2,16 @@ import { z } from 'zod';
 
 const AuthValidation = {
   oneTimeSuperAdmin: z.object({
-    email: z.string().email(),
+    email: z.string().email().toLowerCase(),
     firstName: z.string(),
     lastName: z.string(),
   }),
   login: z.object({
-    email: z.string().email(),
+    email: z.string().email().toLowerCase(),
     password: z.string(),
   }),
   createAdmin: z.object({
-    email: z.string().email(),
+    email: z.string().email().toLowerCase(),
     firstName: z.string(),
     lastName: z.string(),
   }),

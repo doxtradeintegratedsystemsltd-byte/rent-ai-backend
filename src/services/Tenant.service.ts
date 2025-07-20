@@ -2,10 +2,127 @@ import { Service } from 'typedi';
 import { BaseService } from './BaseService';
 import { dataSource } from '../configs/dtSource';
 import { Tenant } from '../entities/Tenant';
+import { TenantValidationTypes } from '../validations/Tenant.validation';
+import { BadRequestError } from '../configs/error';
+import { PropertyService } from './Property.service';
+import { AuthService } from './Auth.service';
+import { UserType } from '../utils/authUser';
+import { UserService } from './User.service';
+import { User } from '../entities/User';
+import { LeaseService } from './Lease.service';
 
 @Service()
 export class TenantService extends BaseService<Tenant> {
-  constructor() {
+  constructor(
+    private propertyService: PropertyService,
+    private authService: AuthService,
+    private userService: UserService,
+    private leaseService: LeaseService
+  ) {
     super(dataSource.getRepository(Tenant));
+  }
+
+  async addTenant(body: TenantValidationTypes['create'], authUser: User) {
+    const property = await this.propertyService.findById(body.propertyId, {
+      relations: {
+        currentLease: true,
+      },
+    });
+
+    if (property.currentLease) {
+      throw new BadRequestError('Property already has a tenant');
+    }
+
+    if (new Date(body.startDate) > new Date(body.endDate)) {
+      throw new BadRequestError('Start date must be before end date');
+    }
+
+    if (body.rentStatus === 'paid') {
+      if (!body.paymentReceipt) {
+        throw new BadRequestError('Payment receipt is required for paid rents');
+      }
+    }
+
+    const existingTenant = await this.findOne({
+      where: {
+        email: body.email,
+      },
+      relations: {
+        currentLease: true,
+      },
+    });
+
+    if (existingTenant?.currentLease) {
+      throw new BadRequestError('Tenant already has a property');
+    }
+
+    let tenant;
+    if (!existingTenant) {
+      tenant = await this.createNewTenant(body, authUser);
+    } else {
+      tenant = existingTenant;
+    }
+
+    const lease = await this.leaseService.createLease(
+      property,
+      tenant,
+      authUser,
+      body
+    );
+
+    const updatedProperty = await this.propertyService.update(property.id, {
+      currentLease: lease,
+    });
+    const updatedTenant = await this.update(tenant.id, {
+      currentLease: lease,
+    });
+
+    return {
+      property: updatedProperty,
+      tenant: updatedTenant,
+      lease,
+    };
+  }
+
+  private async createNewTenant(
+    body: Pick<
+      TenantValidationTypes['create'],
+      'firstName' | 'lastName' | 'email' | 'phoneNumber' | 'levelOfEducation'
+    >,
+    authUser: User
+  ) {
+    const existingTenant = await this.findOne({
+      where: {
+        email: body.email,
+      },
+    });
+
+    if (existingTenant) {
+      throw new BadRequestError('Tenant already exists');
+    }
+
+    const { user } = await this.authService.createUser(
+      {
+        email: body.email,
+        firstName: body.firstName,
+        lastName: body.lastName,
+      },
+      UserType.TENANT
+    );
+
+    const tenant = await this.create({
+      firstName: body.firstName,
+      lastName: body.lastName,
+      email: body.email,
+      phoneNumber: body.phoneNumber,
+      levelOfEducation: body.levelOfEducation,
+      createdById: authUser.id,
+    });
+
+    await this.userService.update(user.id, {
+      tenantId: tenant.id,
+    });
+
+    return tenant;
   }
 }
