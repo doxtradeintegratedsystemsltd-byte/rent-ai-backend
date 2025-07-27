@@ -17,3 +17,17 @@ export enum PaymentStatus {
   CANCELLED = 'cancelled',
   REFUNDED = 'refunded',
 }
+
+export enum LeaseStatus {
+  ACTIVE = 'active',
+  INACTIVE = 'in-active',
+}
+
+export const getLeaseEndDate = (
+  startDate: Date | string,
+  noOfYears: number
+) => {
+  return new Date(
+    new Date(startDate).getTime() + noOfYears * 365 * 24 * 60 * 60 * 1000
+  );
+};

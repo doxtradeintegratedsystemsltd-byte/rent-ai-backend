@@ -12,7 +12,7 @@ import {
 } from 'typeorm';
 import { Tenant } from './Tenant';
 import { Property } from './Property';
-import { RentStatus } from '../utils/lease';
+import { LeaseStatus, RentStatus } from '../utils/lease';
 import { User } from './User';
 import { LeasePayment } from './LeasePayment';
 
@@ -41,6 +41,9 @@ export class Lease {
   @Column({ type: 'date' })
   endDate: Date;
 
+  @Column({ type: 'text' })
+  leaseStatus: LeaseStatus;
+
   @Column({ type: 'float' })
   rentAmount: number;
 
@@ -63,6 +66,13 @@ export class Lease {
 
   @OneToMany(() => LeasePayment, (payment) => payment.lease)
   payments: LeasePayment[];
+
+  @Column({ type: 'text', nullable: true })
+  nextLeaseId: string | null;
+
+  @OneToOne(() => Lease)
+  @JoinColumn({ name: 'nextLeaseId' })
+  nextLease: Lease | null;
 
   @CreateDateColumn()
   createdAt: Date;

@@ -10,6 +10,9 @@ import { UserType } from '../utils/authUser';
 import { UserService } from './User.service';
 import { User } from '../entities/User';
 import { LeaseService } from './Lease.service';
+import { JobNames, JobObject } from '../utils/job';
+import { CronJobModule } from '../modules/CronJob.module';
+import { Lease } from '../entities/Lease';
 
 @Service()
 export class TenantService extends BaseService<Tenant> {
@@ -17,7 +20,8 @@ export class TenantService extends BaseService<Tenant> {
     private propertyService: PropertyService,
     private authService: AuthService,
     private userService: UserService,
-    private leaseService: LeaseService
+    private leaseService: LeaseService,
+    private cronJobModule: CronJobModule
   ) {
     super(dataSource.getRepository(Tenant));
   }
@@ -31,16 +35,6 @@ export class TenantService extends BaseService<Tenant> {
 
     if (property.currentLease) {
       throw new BadRequestError('Property already has a tenant');
-    }
-
-    if (new Date(body.startDate) > new Date(body.endDate)) {
-      throw new BadRequestError('Start date must be before end date');
-    }
-
-    if (body.rentStatus === 'paid') {
-      if (!body.paymentReceipt) {
-        throw new BadRequestError('Payment receipt is required for paid rents');
-      }
     }
 
     const existingTenant = await this.findOne({
@@ -60,7 +54,7 @@ export class TenantService extends BaseService<Tenant> {
     if (!existingTenant) {
       tenant = await this.createNewTenant(body, authUser);
     } else {
-      tenant = existingTenant;
+      tenant = await this.update(existingTenant.id, body);
     }
 
     const lease = await this.leaseService.createLease(
@@ -77,11 +71,63 @@ export class TenantService extends BaseService<Tenant> {
       currentLease: lease,
     });
 
+    await this.setUpRentReminders(lease);
+
     return {
       property: updatedProperty,
       tenant: updatedTenant,
       lease,
     };
+  }
+
+  private async setUpRentReminders(lease: Lease) {
+    const twoMonthsBefore = new Date(lease.endDate);
+    twoMonthsBefore.setMonth(twoMonthsBefore.getMonth() - 2);
+
+    const twoWeeksBefore = new Date(lease.endDate);
+    twoWeeksBefore.setDate(twoWeeksBefore.getDate() - 14);
+
+    const twoMonthsBeforeObject: JobObject[JobNames.rentDue] = {
+      leaseId: lease.id,
+      timestamp: twoMonthsBefore.toISOString(),
+      type: 'twoMonthsBefore',
+    };
+
+    const twoWeeksBeforeObject: JobObject[JobNames.rentDue] = {
+      leaseId: lease.id,
+      timestamp: twoWeeksBefore.toISOString(),
+      type: 'twoWeeksBefore',
+    };
+
+    const dueObject: JobObject[JobNames.rentDue] = {
+      leaseId: lease.id,
+      timestamp: lease.endDate.toISOString(),
+      type: 'due',
+    };
+
+    await Promise.all([
+      this.cronJobModule.scheduleJob(
+        JobNames.rentDue,
+        {
+          timestamp: twoMonthsBefore,
+        },
+        twoMonthsBeforeObject
+      ),
+      this.cronJobModule.scheduleJob(
+        JobNames.rentDue,
+        {
+          timestamp: twoWeeksBefore,
+        },
+        twoWeeksBeforeObject
+      ),
+      this.cronJobModule.scheduleJob(
+        JobNames.rentDue,
+        {
+          timestamp: lease.endDate,
+        },
+        dueObject
+      ),
+    ]);
   }
 
   private async createNewTenant(

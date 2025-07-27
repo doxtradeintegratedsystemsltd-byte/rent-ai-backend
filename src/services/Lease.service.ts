@@ -6,7 +6,12 @@ import { TenantValidationTypes } from '../validations/Tenant.validation';
 import { Tenant } from '../entities/Tenant';
 import { Property } from '../entities/Property';
 import { User } from '../entities/User';
-import { PaymentType, RentStatus } from '../utils/lease';
+import {
+  getLeaseEndDate,
+  LeaseStatus,
+  PaymentType,
+  RentStatus,
+} from '../utils/lease';
 import { LeasePaymentService } from './LeasePayment.service';
 
 // Evening boss. Sorry for the late message, but didn’t want to
@@ -26,7 +31,7 @@ export class LeaseService extends BaseService<Lease> {
     authUser: User,
     data: Pick<
       TenantValidationTypes['create'],
-      'startDate' | 'endDate' | 'rentAmount' | 'rentStatus' | 'paymentReceipt'
+      'startDate' | 'noOfYears' | 'rentAmount' | 'paymentReceipt'
     >
   ) {
     let rentStatus = RentStatus.PAID;
@@ -35,17 +40,16 @@ export class LeaseService extends BaseService<Lease> {
       property,
       tenant,
       startDate: data.startDate,
-      endDate: data.endDate,
+      endDate: getLeaseEndDate(data.startDate, data.noOfYears),
+      leaseStatus: LeaseStatus.ACTIVE,
       createdBy: authUser,
       rentAmount: data.rentAmount,
       rentStatus,
     });
 
-    const leasePayment = await this.leasePaymentService.createLeasePayment(
+    const { leasePayment } = await this.leasePaymentService.createLeasePayment(
       lease,
-      data.rentStatus === RentStatus.PAID
-        ? PaymentType.MANUAL
-        : PaymentType.PAYSTACK,
+      PaymentType.MANUAL,
       authUser,
       data.paymentReceipt
     );

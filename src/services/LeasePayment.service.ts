@@ -12,13 +12,13 @@ export class LeasePaymentService extends BaseService<LeasePayment> {
     super(dataSource.getRepository(LeasePayment));
   }
 
-  createLeasePayment(
+  async createLeasePayment(
     lease: Lease,
     paymentType: PaymentType,
     authUser: User,
     receiptUrl?: string
   ) {
-    const payment = this.create({
+    const payment = await this.create({
       lease,
       type: paymentType,
       createdById: authUser.id,
@@ -30,6 +30,6 @@ export class LeasePaymentService extends BaseService<LeasePayment> {
           : PaymentStatus.PENDING,
     });
 
-    return payment;
+    return { leasePayment: payment };
   }
 }

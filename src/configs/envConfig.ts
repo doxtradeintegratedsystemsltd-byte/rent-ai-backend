@@ -19,6 +19,7 @@ const envVarsSchema = Joi.object()
     CLOUDINARY_CLOUD_NAME: Joi.string().required(),
     CLOUDINARY_API_KEY: Joi.string().required(),
     CLOUDINARY_API_SECRET: Joi.string().required(),
+    RUN_JOBS: Joi.boolean().required(),
   })
   .unknown();
 
@@ -43,6 +44,7 @@ const envConfig = {
   CLOUDINARY_CLOUD_NAME: envVars.CLOUDINARY_CLOUD_NAME as string,
   CLOUDINARY_API_KEY: envVars.CLOUDINARY_API_KEY as string,
   CLOUDINARY_API_SECRET: envVars.CLOUDINARY_API_SECRET as string,
+  RUN_JOBS: envVars.RUN_JOBS as boolean,
 };
 
 export default envConfig;

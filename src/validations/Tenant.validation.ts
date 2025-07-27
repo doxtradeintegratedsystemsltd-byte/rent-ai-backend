@@ -10,13 +10,10 @@ const TenantValidation = {
     startDate: z.string().refine((val) => !isNaN(Date.parse(val)), {
       message: 'Invalid date format',
     }),
-    endDate: z.string().refine((val) => !isNaN(Date.parse(val)), {
-      message: 'Invalid date format',
-    }),
+    noOfYears: z.number().positive(),
     propertyId: z.string(),
-    rentAmount: z.number(),
-    rentStatus: z.enum(['paid', 'unPaid']),
-    paymentReceipt: z.string().optional(),
+    rentAmount: z.number().positive().optional(),
+    paymentReceipt: z.string(),
   }),
 };
 
