@@ -6,8 +6,10 @@ import LeaseRoutes from './lease.route';
 import UserRoutes from './user.route';
 import AuthRoutes from './auth.route';
 import UploadRoutes from './upload.route';
+import NotificationRoutes from './notification.route';
 const router = express.Router();
 
+router.use('/notifications', NotificationRoutes);
 router.use('/app-error-log', AppErrorLogRoutes);
 router.use('/properties', PropertyRoutes);
 router.use('/tenants', TenantRoutes);
