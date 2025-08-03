@@ -14,6 +14,8 @@ const AuthValidation = {
     email: z.string().email().toLowerCase(),
     firstName: z.string(),
     lastName: z.string(),
+    photoUrl: z.string().optional(),
+    phoneNumber: z.string().optional(),
   }),
 };
 

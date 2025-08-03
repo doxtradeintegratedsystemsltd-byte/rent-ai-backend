@@ -27,7 +27,7 @@ export class NotificationController {
       const { id } = req.params;
       const notification = await this.notificationService.findById(id, {
         relations: {
-          user: true,
+          admin: true,
           property: true,
           lease: true,
           tenant: true,

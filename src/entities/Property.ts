@@ -40,6 +40,9 @@ export class Property {
   @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
   rentAmount: number;
 
+  @Column({ type: 'integer', default: 1 })
+  leaseYears: number;
+
   @ManyToOne(() => User)
   @JoinColumn({ name: 'createdById' })
   createdBy: User;

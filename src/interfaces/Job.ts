@@ -1,1 +1,1 @@
-export type ScheduleType = { cron: string } | { timestamp: Date };
+export type ScheduleType = { timestamp: Date };

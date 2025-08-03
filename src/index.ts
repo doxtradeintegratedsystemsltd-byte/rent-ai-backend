@@ -14,6 +14,7 @@ import envConfig from './configs/envConfig';
 import ErrorHandlerMiddleware from './middleware/ErrorHandler';
 import { NotFoundMiddleware } from './middleware/NotFound';
 import { logError } from './utils/errorLogging';
+import { CronJobModule } from './modules/CronJob.module';
 
 dotenv.config();
 
@@ -116,6 +117,11 @@ const initializeApp = async () => {
     app.use(ErrorHandlerMiddleware);
 
     app.listen(PORT, () => {
+      if (envConfig.RUN_JOBS) {
+        const cronJobModule = Container.get(CronJobModule);
+        cronJobModule.startPolling();
+      }
+
       console.log(`Server is running on port ${PORT}`);
     });
   } catch (err) {

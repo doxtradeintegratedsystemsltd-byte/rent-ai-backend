@@ -1,7 +1,6 @@
-import cron from 'node-cron';
 import { Job } from '../entities/Job';
 import envConfig from '../configs/envConfig';
-import { JobNames, JobStatus, timestampToCron } from '../utils/job';
+import { JobNames, JobStatus } from '../utils/job';
 import { JobService } from '../services/Job.service';
 import { Service } from 'typedi';
 import { ScheduleType } from '../interfaces/Job';
@@ -9,57 +8,49 @@ import { ScheduleType } from '../interfaces/Job';
 @Service()
 export class CronJobModule {
   private jobsScheduled: Set<string> = new Set();
+  private pollingInterval: NodeJS.Timeout | null = null;
 
   constructor(private jobService: JobService) {}
 
   public async scheduleJob(
     name: JobNames,
     schedule: ScheduleType,
-    data: object,
-    isRecurring: boolean = false
+    data: object
   ) {
-    let cronExpression: string;
+    let scheduledAt: Date;
 
-    // Determine the type of schedule
+    // Determine the scheduled time
     if ('cron' in schedule) {
-      if (!cron.validate(schedule.cron)) {
-        throw new Error(`Invalid cron schedule: ${schedule.cron}`);
-      }
-      cronExpression = schedule.cron;
+      throw new Error(
+        'Cron schedules are not supported. Please use timestamp-based scheduling.'
+      );
     } else if ('timestamp' in schedule) {
       if (schedule.timestamp.getTime() <= Date.now()) {
         throw new Error('Provided timestamp is in the past.');
       }
-      cronExpression = timestampToCron(schedule.timestamp);
+      scheduledAt = schedule.timestamp;
     } else {
       throw new Error('Invalid schedule type.');
     }
 
-    console.log(`Scheduling job "${name}" with cron: ${cronExpression}`);
+    console.log(`Scheduling job "${name}" for: ${scheduledAt.toISOString()}`);
 
     // Save the job to the database
     const job = await this.jobService.create({
       name: name,
-      schedule: cronExpression,
-      isRecurring,
+      schedule: scheduledAt.toISOString(), // Store the timestamp as a string
       data,
       jobStatus: JobStatus.pending,
+      scheduledAt: scheduledAt,
     });
 
-    // Register the job
-    if (envConfig.RUN_JOBS) {
-      this.registerCronJob(job);
-    }
     return job;
   }
 
   private async executeJob(_job: Job): Promise<void> {
     const job = await this.jobService.findById(_job.id);
 
-    if (
-      job.jobStatus === JobStatus.pending ||
-      (job.isRecurring && job.jobStatus === JobStatus.completed)
-    ) {
+    if (job.jobStatus === JobStatus.pending) {
       try {
         console.log(`Executing job: '${job.name}'`);
         await this.jobService.update(job.id, { jobStatus: JobStatus.running });
@@ -82,51 +73,41 @@ export class CronJobModule {
     }
   }
 
-  private registerCronJob(job: Job): void {
+  public startPolling(): void {
+    // Poll every minute for jobs that are due
+    this.pollingInterval = setInterval(async () => {
+      await this.checkDueJobs();
+    }, 60 * 1000); // 1 minute
+  }
+
+  private async checkDueJobs(): Promise<void> {
     try {
-      if (this.jobsScheduled.has(job.id)) {
-        console.warn(`Job '${job.name}' is already registered.`);
-        return;
-      }
-
-      if (
-        !(
-          job.jobStatus === JobStatus.pending ||
-          (job.isRecurring && job.jobStatus === JobStatus.completed)
-        )
-      ) {
-        return;
-      }
-
-      console.log(
-        `Registering${job.isRecurring ? ' recurring' : ''} job '${
-          job.name
-        }' with schedule: ${job.schedule}`
-      );
-      this.jobsScheduled.add(job.id);
-
-      const task = cron.schedule(job.schedule, async () => {
-        await this.executeJob(job);
-        if (!job.isRecurring) {
-          console.log(`Stopping one-time job '${job.name}'`);
-          task.stop(); // Stop the cron job
-          this.jobsScheduled.delete(job.id);
-        }
+      const now = new Date();
+      const jobs = await this.jobService.findMany({
+        where: [
+          {
+            jobStatus: JobStatus.pending,
+            scheduledAt: { $lte: now } as any,
+          },
+        ],
       });
+
+      for (const job of jobs) {
+        if (job.scheduledAt && job.scheduledAt <= now) {
+          console.log(`Executing job: '${job.name}'`);
+          await this.executeJob(job);
+        }
+      }
     } catch (error) {
-      console.error(`Failed to register job '${job.name}':`, error);
-      this.jobsScheduled.delete(job.id);
+      console.error('Error checking due jobs:', error);
     }
   }
 
-  public async loadPersistedJobs(): Promise<void> {
-    const jobs = await this.jobService.findMany({
-      where: [{ jobStatus: JobStatus.pending }, { isRecurring: true }],
-    });
-
-    console.log(`Found ${jobs.length} persisted jobs.`);
-    for (const job of jobs) {
-      this.registerCronJob(job);
+  public stopPolling(): void {
+    if (this.pollingInterval) {
+      clearInterval(this.pollingInterval);
+      this.pollingInterval = null;
+      console.log('Job polling stopped');
     }
   }
 }

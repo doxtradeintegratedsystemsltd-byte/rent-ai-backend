@@ -7,6 +7,7 @@ import UserRoutes from './user.route';
 import AuthRoutes from './auth.route';
 import UploadRoutes from './upload.route';
 import NotificationRoutes from './notification.route';
+import JobRoutes from './job.route';
 const router = express.Router();
 
 router.use('/notifications', NotificationRoutes);
@@ -17,5 +18,6 @@ router.use('/uploads', UploadRoutes);
 router.use('/leases', LeaseRoutes);
 router.use('/users', UserRoutes);
 router.use('/auth', AuthRoutes);
+router.use('/jobs', JobRoutes);
 
 export default router;

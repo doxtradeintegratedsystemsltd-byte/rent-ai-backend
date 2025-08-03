@@ -25,9 +25,11 @@ export enum LeaseStatus {
 
 export const getLeaseEndDate = (
   startDate: Date | string,
-  noOfYears: number
+  propertyLeaseYears: number,
+  leaseCycles: number
 ) => {
+  const oneYear = 365 * 24 * 60 * 60 * 1000;
   return new Date(
-    new Date(startDate).getTime() + noOfYears * 365 * 24 * 60 * 60 * 1000
+    new Date(startDate).getTime() + propertyLeaseYears * leaseCycles * oneYear
   );
 };

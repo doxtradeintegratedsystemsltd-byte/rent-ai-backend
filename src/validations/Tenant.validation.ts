@@ -5,14 +5,14 @@ const TenantValidation = {
     firstName: z.string(),
     lastName: z.string(),
     email: z.string().email().toLowerCase(),
+    photoUrl: z.string().optional(),
     phoneNumber: z.string(),
     levelOfEducation: z.string().optional(),
     startDate: z.string().refine((val) => !isNaN(Date.parse(val)), {
       message: 'Invalid date format',
     }),
-    noOfYears: z.number().positive(),
+    leaseCycles: z.number().positive(),
     propertyId: z.string(),
-    rentAmount: z.number().positive().optional(),
     paymentReceipt: z.string(),
   }),
 };

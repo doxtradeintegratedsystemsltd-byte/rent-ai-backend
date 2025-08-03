@@ -35,14 +35,20 @@ export class Lease {
   @JoinColumn({ name: 'propertyId' })
   property: Property;
 
-  @Column({ type: 'date' })
-  startDate: Date;
+  @Column({ type: 'timestamp' })
+  startDate: Date | string;
 
-  @Column({ type: 'date' })
-  endDate: Date;
+  @Column({ type: 'timestamp' })
+  endDate: Date | string;
 
-  @Column({ type: 'text' })
+  @Column({ type: 'text', default: LeaseStatus.ACTIVE })
   leaseStatus: LeaseStatus;
+
+  @Column({ type: 'integer', default: 1 })
+  leaseYears: number;
+
+  @Column({ type: 'integer', default: 1 })
+  leaseCycles: number;
 
   @Column({ type: 'float' })
   rentAmount: number;

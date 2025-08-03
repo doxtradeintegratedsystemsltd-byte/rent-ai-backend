@@ -7,6 +7,7 @@ import {
   DeleteDateColumn,
 } from 'typeorm';
 
+@Entity()
 export class Job {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -18,10 +19,10 @@ export class Job {
   data?: any;
 
   @Column({ type: 'text' })
-  schedule: string; // Cron expression or one-time timestamp
+  schedule: string; // ISO timestamp string for when the job should run
 
-  @Column({ type: 'boolean', default: false })
-  isRecurring: boolean;
+  @Column({ type: 'timestamp' })
+  scheduledAt: Date; // The actual scheduled timestamp for the job
 
   @Column({ type: 'text' })
   jobStatus: string;

@@ -10,26 +10,30 @@ import {
   PaymentType,
   RentStatus,
 } from '../utils/lease';
+import { NotificationService } from './Notification.service';
+import { BadRequestError } from '../configs/error';
 
 @Service()
 export class JobService extends BaseService<Job> {
-  constructor(private leaseService: LeaseService) {
+  constructor(
+    private leaseService: LeaseService,
+    private notificationService: NotificationService
+  ) {
     super(dataSource.getRepository(Job));
   }
 
   async handleJobExecution(job: Job): Promise<void> {
     try {
       switch (job.name) {
-        case JobNames.rentDue: {
+        case JobNames.rentDue:
           await this.executeRentDue(job.data);
           break;
-        }
         default: {
-          throw new Error('Job not found');
+          throw new BadRequestError('Job not found');
         }
       }
     } catch (error) {
-      console.error('Error executing job: ', error);
+      console.error('BadRequestError executing job: ', error);
       throw error;
     }
   }
@@ -41,29 +45,41 @@ export class JobService extends BaseService<Job> {
       relations: {
         payment: true,
         nextLease: true,
+        tenant: true,
+        property: true,
       },
     });
 
     if (lease.leaseStatus !== LeaseStatus.ACTIVE) {
-      throw new Error('Lease is currently not active');
+      throw new BadRequestError('Lease is currently not active');
     }
 
     if (lease.nextLease && lease.nextLease.rentStatus === RentStatus.PAID) {
-      throw new Error('Lease rent is already paid');
+      throw new BadRequestError('Lease rent is already paid');
     }
 
+    let rentStatus;
     if (job.type === 'twoMonthsBefore') {
-      await this.leaseService.update(lease.id, {
-        rentStatus: RentStatus.NEAR_DUE,
-      });
+      rentStatus = RentStatus.NEAR_DUE;
     } else if (job.type === 'twoWeeksBefore') {
-      await this.leaseService.update(lease.id, {
-        rentStatus: RentStatus.DUE,
-      });
+      rentStatus = RentStatus.DUE;
     } else if (job.type === 'due') {
-      await this.leaseService.update(lease.id, {
-        rentStatus: RentStatus.OVER_DUE,
-      });
+      rentStatus = RentStatus.OVER_DUE;
+    } else {
+      throw new BadRequestError(
+        `Invalid job type for rent status: ${job.type}`
+      );
     }
+
+    await this.leaseService.update(lease.id, {
+      rentStatus,
+    });
+
+    await this.notificationService.createRentDueNotification(
+      lease.tenant,
+      lease.property,
+      lease,
+      rentStatus
+    );
   }
 }

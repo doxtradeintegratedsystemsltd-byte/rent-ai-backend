@@ -7,6 +7,8 @@ const PropertyValidation = {
     propertyArea: z.string(),
     propertyAddress: z.string().optional(),
     propertyImage: z.string().optional(),
+    leaseYears: z.number().positive(),
+    rentAmount: z.number().positive(),
   }),
   update: z.object({
     propertyName: z.string().optional(),
@@ -14,6 +16,8 @@ const PropertyValidation = {
     propertyArea: z.string().optional(),
     propertyAddress: z.string().optional(),
     propertyImage: z.string().optional(),
+    leaseYears: z.number().positive().optional(),
+    rentAmount: z.number().positive().optional(),
   }),
 };
 

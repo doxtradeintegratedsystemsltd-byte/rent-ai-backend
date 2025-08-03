@@ -43,11 +43,11 @@ export class Notification {
   data?: any;
 
   @Column({ type: 'text', nullable: true })
-  userId: string;
+  adminId: string;
 
   @ManyToOne(() => User)
-  @JoinColumn({ name: 'userId' })
-  user: User;
+  @JoinColumn({ name: 'adminId' })
+  admin: User;
 
   @Column({ type: 'text', nullable: true })
   propertyId: string;

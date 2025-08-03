@@ -13,39 +13,59 @@ import {
   RentStatus,
 } from '../utils/lease';
 import { LeasePaymentService } from './LeasePayment.service';
+import { BadRequestError } from '../configs/error';
+import { LeaseValidationTypes } from '../validations/Lease.validation';
+import { UserType } from '../utils/authUser';
 
-// Evening boss. Sorry for the late message, but didn’t want to
-// forget the question. When adding a tenant, the admin can say
-// that the rent is already paid. That means that the tenant
-// doesn’t have to pay on the system? And then if it’s unpaid,
-// the tenant has to pay?
 @Service()
 export class LeaseService extends BaseService<Lease> {
   constructor(private readonly leasePaymentService: LeasePaymentService) {
     super(dataSource.getRepository(Lease));
   }
 
-  async createLease(
+  private async createLease(
+    property: Property,
+    tenant: Tenant,
+    authUser: User,
+    data: Pick<TenantValidationTypes['create'], 'startDate' | 'leaseCycles'>,
+    rentStatus: RentStatus
+  ) {
+    return this.create({
+      property,
+      tenant,
+      startDate: data.startDate,
+      endDate: getLeaseEndDate(
+        data.startDate,
+        property.leaseYears,
+        data.leaseCycles
+      ),
+      leaseStatus: LeaseStatus.ACTIVE,
+      leaseYears: property.leaseYears,
+      leaseCycles: data.leaseCycles,
+      createdBy: authUser,
+      rentAmount: property.rentAmount * data.leaseCycles,
+      rentStatus,
+    });
+  }
+
+  async createNewLease(
     property: Property,
     tenant: Tenant,
     authUser: User,
     data: Pick<
       TenantValidationTypes['create'],
-      'startDate' | 'noOfYears' | 'rentAmount' | 'paymentReceipt'
+      'startDate' | 'leaseCycles' | 'paymentReceipt'
     >
   ) {
     let rentStatus = RentStatus.PAID;
 
-    const lease = await this.create({
+    const lease = await this.createLease(
       property,
       tenant,
-      startDate: data.startDate,
-      endDate: getLeaseEndDate(data.startDate, data.noOfYears),
-      leaseStatus: LeaseStatus.ACTIVE,
-      createdBy: authUser,
-      rentAmount: data.rentAmount,
-      rentStatus,
-    });
+      authUser,
+      data,
+      rentStatus
+    );
 
     const { leasePayment } = await this.leasePaymentService.createLeasePayment(
       lease,
@@ -55,5 +75,103 @@ export class LeaseService extends BaseService<Lease> {
     );
 
     return this.update(lease.id, { payment: leasePayment });
+  }
+
+  async createLeasePayment(
+    {
+      leaseCycles,
+      leaseId,
+      paymentDate,
+      paymentReceipt,
+    }: LeaseValidationTypes['createLeasePayment'],
+    authUser: User
+  ) {
+    const lease = await this.findById(leaseId, {
+      relations: {
+        nextLease: true,
+        property: true,
+        tenant: true,
+      },
+    });
+
+    if (authUser.userType !== UserType.ADMIN) {
+      if (lease.tenant.id !== authUser.id) {
+        throw new BadRequestError(
+          'You are not authorized to create lease payment for this lease'
+        );
+      }
+    }
+
+    if (lease.leaseStatus !== LeaseStatus.ACTIVE) {
+      throw new BadRequestError('Lease is currently not active');
+    }
+
+    if (lease.nextLease && lease.nextLease.rentStatus === RentStatus.PAID) {
+      throw new BadRequestError('Next lease rent is already paid');
+    }
+
+    let nextLease;
+    if (!lease.nextLease) {
+      nextLease = await this.createLease(
+        lease.property,
+        lease.tenant,
+        authUser,
+        {
+          startDate: new Date(lease.endDate).toISOString(),
+          leaseCycles,
+        },
+        RentStatus.DUE
+      );
+
+      await this.update(lease.id, {
+        nextLease: nextLease,
+      });
+    } else {
+      nextLease = await this.createLease(
+        lease.property,
+        lease.tenant,
+        authUser,
+        {
+          startDate: new Date(lease.endDate).toISOString(),
+          leaseCycles,
+        },
+        RentStatus.DUE
+      );
+
+      await this.update(lease.id, {
+        nextLease: nextLease,
+      });
+
+      await this.softDelete(lease.nextLease.id);
+    }
+
+    let data;
+    if (authUser.userType === UserType.ADMIN) {
+      data = await this.leasePaymentService.createLeasePayment(
+        nextLease,
+        PaymentType.MANUAL,
+        authUser,
+        paymentReceipt
+      );
+
+      this.update(nextLease.id, {
+        rentStatus: RentStatus.PAID,
+      });
+
+      this.update(lease.id, {
+        rentStatus: RentStatus.PAID,
+      });
+
+      return null;
+    } else {
+      const { leasePayment, paymentLink } =
+        await this.leasePaymentService.createLeasePayment(
+          nextLease,
+          PaymentType.PAYSTACK,
+          authUser
+        );
+
+      return paymentLink;
+    }
   }
 }

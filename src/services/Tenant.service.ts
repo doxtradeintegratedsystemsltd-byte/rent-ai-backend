@@ -43,6 +43,7 @@ export class TenantService extends BaseService<Tenant> {
       },
       relations: {
         currentLease: true,
+        user: true,
       },
     });
 
@@ -54,10 +55,10 @@ export class TenantService extends BaseService<Tenant> {
     if (!existingTenant) {
       tenant = await this.createNewTenant(body, authUser);
     } else {
-      tenant = await this.update(existingTenant.id, body);
+      tenant = await this.updateTenant(existingTenant, body);
     }
 
-    const lease = await this.leaseService.createLease(
+    const lease = await this.leaseService.createNewLease(
       property,
       tenant,
       authUser,
@@ -71,6 +72,7 @@ export class TenantService extends BaseService<Tenant> {
       currentLease: lease,
     });
 
+    console.log(typeof lease.endDate);
     await this.setUpRentReminders(lease);
 
     return {
@@ -101,7 +103,7 @@ export class TenantService extends BaseService<Tenant> {
 
     const dueObject: JobObject[JobNames.rentDue] = {
       leaseId: lease.id,
-      timestamp: lease.endDate.toISOString(),
+      timestamp: new Date(lease.endDate).toISOString(),
       type: 'due',
     };
 
@@ -123,7 +125,7 @@ export class TenantService extends BaseService<Tenant> {
       this.cronJobModule.scheduleJob(
         JobNames.rentDue,
         {
-          timestamp: lease.endDate,
+          timestamp: new Date(lease.endDate),
         },
         dueObject
       ),
@@ -133,7 +135,12 @@ export class TenantService extends BaseService<Tenant> {
   private async createNewTenant(
     body: Pick<
       TenantValidationTypes['create'],
-      'firstName' | 'lastName' | 'email' | 'phoneNumber' | 'levelOfEducation'
+      | 'firstName'
+      | 'lastName'
+      | 'email'
+      | 'phoneNumber'
+      | 'levelOfEducation'
+      | 'photoUrl'
     >,
     authUser: User
   ) {
@@ -152,6 +159,8 @@ export class TenantService extends BaseService<Tenant> {
         email: body.email,
         firstName: body.firstName,
         lastName: body.lastName,
+        photoUrl: body.photoUrl,
+        phoneNumber: body.phoneNumber,
       },
       UserType.TENANT
     );
@@ -170,5 +179,32 @@ export class TenantService extends BaseService<Tenant> {
     });
 
     return tenant;
+  }
+
+  async updateTenant(
+    tenant: Tenant,
+    body: Pick<
+      TenantValidationTypes['create'],
+      'firstName' | 'lastName' | 'phoneNumber' | 'levelOfEducation' | 'photoUrl'
+    >
+  ) {
+    const { firstName, lastName, phoneNumber, levelOfEducation, photoUrl } =
+      body;
+
+    const updatedTenant = await this.update(tenant.id, {
+      firstName,
+      lastName,
+      phoneNumber,
+      levelOfEducation,
+    });
+
+    await this.userService.update(tenant.user.id, {
+      firstName,
+      lastName,
+      phoneNumber,
+      photoUrl,
+    });
+
+    return updatedTenant;
   }
 }

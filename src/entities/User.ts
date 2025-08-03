@@ -29,6 +29,12 @@ export class User {
   @Column({ type: 'text' })
   userType: UserType;
 
+  @Column({ type: 'text', nullable: true })
+  photoUrl: string;
+
+  @Column({ type: 'text', nullable: true })
+  phoneNumber: string;
+
   @OneToOne(() => Auth, (auth) => auth.user, { cascade: true })
   auth: Auth;
 

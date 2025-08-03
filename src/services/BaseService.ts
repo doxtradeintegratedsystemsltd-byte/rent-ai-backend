@@ -56,6 +56,7 @@ export class BaseService<T extends ObjectLiteral> {
       where: {
         id: id as any,
       },
+      withDeleted: false,
       ...options,
     });
 

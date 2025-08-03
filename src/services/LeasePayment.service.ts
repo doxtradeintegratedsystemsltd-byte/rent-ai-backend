@@ -30,6 +30,17 @@ export class LeasePaymentService extends BaseService<LeasePayment> {
           : PaymentStatus.PENDING,
     });
 
-    return { leasePayment: payment };
+    let paymentLink;
+    if (paymentType === PaymentType.PAYSTACK) {
+      // TODO: Implement paystack payment
+      // will get payment link and reference
+      // update payment with payment link and reference
+      // return payment link and reference
+      paymentLink = 'https://paystack.com/pay/1234567890';
+      payment.reference = '1234567890';
+
+      await this.repository.save(payment);
+    }
+    return { leasePayment: payment, paymentLink };
   }
 }

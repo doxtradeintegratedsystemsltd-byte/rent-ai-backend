@@ -4,18 +4,83 @@ import { dataSource } from '../configs/dtSource';
 import { Notification } from '../entities/Notification';
 import { PaginationRequest } from '../types/CustomTypes';
 import {
+  NotificationChannel,
   NotificationStatus,
   NotificationType,
-  NotificationChannel,
 } from '../utils/notification';
 import { UserType } from '../utils/authUser';
 import { User } from '../entities/User';
 import { FindOptionsWhere } from 'typeorm';
+import { Tenant } from '../entities/Tenant';
+import { Property } from '../entities/Property';
+import { Lease } from '../entities/Lease';
+import { RentStatus } from '../utils/lease';
+import { BadRequestError } from '../configs/error';
 
 @Service()
 export class NotificationService extends BaseService<Notification> {
   constructor() {
     super(dataSource.getRepository(Notification));
+  }
+
+  async createTenantAssignedNotification(
+    tenant: Tenant,
+    property: Property,
+    lease: Lease,
+    admin: User
+  ) {
+    const notification = await this.create({
+      tenant,
+      property,
+      lease,
+      userType: UserType.ADMIN,
+      notificationType: NotificationType.TENANT_ASSIGNED,
+      notificationChannel: NotificationChannel.INTERNAL,
+      status: NotificationStatus.PENDING,
+      admin,
+    });
+
+    return notification;
+  }
+
+  async createRentDueNotification(
+    tenant: Tenant,
+    property: Property,
+    lease: Lease,
+    rentStatus: RentStatus
+  ) {
+    let notificationType;
+    if (rentStatus === RentStatus.DUE) {
+      notificationType = NotificationType.RENT_DUE;
+    } else if (rentStatus === RentStatus.OVER_DUE) {
+      notificationType = NotificationType.RENT_OVERDUE;
+    } else if (rentStatus === RentStatus.NEAR_DUE) {
+      notificationType = NotificationType.RENT_NEAR_DUE;
+    } else {
+      throw new BadRequestError('Invalid rent status');
+    }
+
+    const notification = await this.create({
+      tenant,
+      property,
+      lease,
+      notificationType,
+      notificationChannel: NotificationChannel.INTERNAL,
+      userType: UserType.ADMIN,
+      status: NotificationStatus.PENDING,
+    });
+
+    await this.create({
+      tenant,
+      property,
+      lease,
+      notificationType,
+      notificationChannel: NotificationChannel.INTERNAL,
+      userType: UserType.TENANT,
+      status: NotificationStatus.PENDING,
+    });
+
+    return notification;
   }
 
   createDefaultFilter(authUser: User, channel: NotificationChannel) {
@@ -44,7 +109,7 @@ export class NotificationService extends BaseService<Notification> {
         ...defaultFilter,
       },
       relations: {
-        user: true,
+        admin: true,
         property: true,
         lease: true,
         tenant: true,
