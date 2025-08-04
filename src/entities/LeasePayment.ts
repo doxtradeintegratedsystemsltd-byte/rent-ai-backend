@@ -54,6 +54,9 @@ export class LeasePayment {
   @JoinColumn({ name: 'createdById' })
   createdBy: User;
 
+  @Column({ type: 'timestamp', nullable: true })
+  paymentDate: Date;
+
   @CreateDateColumn()
   createdAt: Date;
 

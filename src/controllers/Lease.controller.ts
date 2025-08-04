@@ -3,6 +3,7 @@ import { Service } from 'typedi';
 import { successResponse } from '../utils/response';
 import { LeaseService } from '../services/Lease.service';
 import { Lease } from '../entities/Lease';
+import { LeaseValidationTypes } from '../validations/Lease.validation';
 
 @Service()
 export class LeaseController {
@@ -17,11 +18,14 @@ export class LeaseController {
     }
   }
 
-  async create(req: Request, res: Response, next: NextFunction) {
+  async createLeasePayment(req: Request, res: Response, next: NextFunction) {
     try {
-      const body = req.body;
-      const lease = await this.leaseService.create(body);
-      return successResponse(res, 'Create Success', lease);
+      const body = req.body as LeaseValidationTypes['createLeasePayment'];
+      const authUser = req.user!;
+
+      const data = await this.leaseService.createLeasePayment(body, authUser);
+
+      return successResponse(res, 'Create Success', data);
     } catch (error) {
       return next(error);
     }

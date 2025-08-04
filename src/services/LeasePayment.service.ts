@@ -16,13 +16,15 @@ export class LeasePaymentService extends BaseService<LeasePayment> {
     lease: Lease,
     paymentType: PaymentType,
     authUser: User,
-    receiptUrl?: string
+    receiptUrl?: string,
+    paymentDate?: Date
   ) {
     const payment = await this.create({
       lease,
       type: paymentType,
       createdById: authUser.id,
       receiptUrl,
+      paymentDate,
       amount: lease.rentAmount,
       status:
         paymentType === PaymentType.MANUAL

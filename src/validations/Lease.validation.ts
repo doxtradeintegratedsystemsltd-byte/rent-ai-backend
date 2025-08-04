@@ -5,9 +5,12 @@ const LeaseValidation = {
     leaseId: z.string(),
     leaseCycles: z.number(),
     paymentReceipt: z.string().optional(),
-    paymentDate: z.string().refine((val) => !isNaN(Date.parse(val)), {
-      message: 'Invalid date format',
-    }),
+    paymentDate: z
+      .string()
+      .refine((val) => !isNaN(Date.parse(val)), {
+        message: 'Invalid date format',
+      })
+      .optional(),
   }),
 };
 

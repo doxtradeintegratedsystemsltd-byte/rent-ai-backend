@@ -54,7 +54,7 @@ export class LeaseService extends BaseService<Lease> {
     authUser: User,
     data: Pick<
       TenantValidationTypes['create'],
-      'startDate' | 'leaseCycles' | 'paymentReceipt'
+      'startDate' | 'leaseCycles' | 'paymentReceipt' | 'paymentDate'
     >
   ) {
     let rentStatus = RentStatus.PAID;
@@ -71,7 +71,8 @@ export class LeaseService extends BaseService<Lease> {
       lease,
       PaymentType.MANUAL,
       authUser,
-      data.paymentReceipt
+      data.paymentReceipt,
+      new Date(data.paymentDate)
     );
 
     return this.update(lease.id, { payment: leasePayment });
@@ -94,10 +95,16 @@ export class LeaseService extends BaseService<Lease> {
       },
     });
 
-    if (authUser.userType !== UserType.ADMIN) {
+    if (authUser.userType === UserType.TENANT) {
       if (lease.tenant.id !== authUser.id) {
         throw new BadRequestError(
           'You are not authorized to create lease payment for this lease'
+        );
+      }
+    } else {
+      if (!(paymentDate && paymentReceipt)) {
+        throw new BadRequestError(
+          'Payment date and receipt are required for admin payments'
         );
       }
     }
@@ -146,12 +153,13 @@ export class LeaseService extends BaseService<Lease> {
     }
 
     let data;
-    if (authUser.userType === UserType.ADMIN) {
+    if (authUser.userType !== UserType.TENANT) {
       data = await this.leasePaymentService.createLeasePayment(
         nextLease,
         PaymentType.MANUAL,
         authUser,
-        paymentReceipt
+        paymentReceipt!,
+        new Date(paymentDate!)
       );
 
       this.update(nextLease.id, {
