@@ -21,9 +21,14 @@ router.post(
   }
 );
 
-router.get('/', verifyToken, (req, res, next) => {
-  controller.getAll(req, res, next);
-});
+router.get(
+  '/',
+  verifyToken,
+  checkRole(RoleGroups.allAdmins),
+  (req, res, next) => {
+    controller.getAll(req, res, next);
+  }
+);
 
 router.get('/:id', verifyToken, (req, res, next) => {
   controller.getById(req, res, next);

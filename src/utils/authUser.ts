@@ -7,4 +7,5 @@ export enum UserType {
 export const RoleGroups = {
   allAdmins: [UserType.ADMIN, UserType.SUPER_ADMIN],
   superAdmin: [UserType.SUPER_ADMIN],
+  tenant: [UserType.TENANT],
 };

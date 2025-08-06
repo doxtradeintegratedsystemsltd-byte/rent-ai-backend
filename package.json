@@ -11,7 +11,9 @@
     "lint:fix": "eslint src/**/*.ts --fix",
     "test": "cross-env NODE_ENV=development jest",
     "test:watch": "cross-env NODE_ENV=development jest --watch",
-    "test:coverage": "cross-env NODE_ENV=development jest --coverage"
+    "test:coverage": "cross-env NODE_ENV=development jest --coverage",
+    "db:clear": "ts-node scripts/clear-db.ts",
+    "db:drop": "ts-node scripts/clear-db.ts drop"
   },
   "keywords": [],
   "author": "",
@@ -35,6 +37,7 @@
     "multer-storage-cloudinary": "^4.0.0",
     "next-crypto": "^1.0.8",
     "passport": "^0.7.0",
+    "paystack-api": "^2.0.6",
     "pg": "^8.16.3",
     "reflect-metadata": "^0.2.2",
     "tsconfig-paths": "^4.2.0",
