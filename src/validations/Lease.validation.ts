@@ -12,6 +12,9 @@ const LeaseValidation = {
       })
       .optional(),
   }),
+  getLeasePaymentReference: z.object({
+    reference: z.string(),
+  }),
 };
 
 export type LeaseValidationTypes = {

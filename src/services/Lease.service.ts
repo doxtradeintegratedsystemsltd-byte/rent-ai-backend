@@ -216,6 +216,7 @@ export class LeaseService extends BaseService<Lease> {
       },
       relations: {
         currentLease: {
+          previousLease: true,
           nextLease: {
             payment: true,
           },
@@ -228,6 +229,25 @@ export class LeaseService extends BaseService<Lease> {
     });
 
     return property;
+  }
+
+  async checkLeasePaymentReference(reference: string) {
+    const payment = await this.leasePaymentService.findOne({
+      where: {
+        reference,
+      },
+      relations: {
+        lease: {
+          property: true,
+        },
+      },
+    });
+
+    if (!payment) {
+      throw new BadRequestError('Lease payment for this reference not found');
+    }
+
+    return payment;
   }
 
   async processLeasePayment(reference: string) {

@@ -24,6 +24,7 @@ const envVarsSchema = Joi.object()
     PAYSTACK_PUBLIC_KEY: Joi.string().required(),
     PAYSTACK_BASE_URL: Joi.string().optional(),
     BACKEND_URL: Joi.string().required(),
+    FRONTEND_URL: Joi.string().required(),
   })
   .unknown();
 
@@ -53,6 +54,7 @@ const envConfig = {
   PAYSTACK_PUBLIC_KEY: envVars.PAYSTACK_PUBLIC_KEY as string,
   PAYSTACK_BASE_URL: envVars.PAYSTACK_BASE_URL as string | null,
   BACKEND_URL: envVars.BACKEND_URL as string,
+  FRONTEND_URL: envVars.FRONTEND_URL as string,
 };
 
 export default envConfig;

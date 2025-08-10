@@ -35,9 +35,23 @@ router.get(
   }
 );
 
-router.get('/payment/callback', (req, res, next) => {
-  controller.leasePaymentCallback(req, res, next);
-});
+router.get(
+  '/payment/callback',
+  Validator(LeaseValidation.getLeasePaymentReference, 'query'),
+  (req, res, next) => {
+    controller.leasePaymentCallback(req, res, next);
+  }
+);
+
+router.get(
+  '/payment/reference',
+  verifyToken,
+  checkRole(RoleGroups.tenant),
+  Validator(LeaseValidation.getLeasePaymentReference, 'query'),
+  (req, res, next) => {
+    controller.checkLeasePaymentReference(req, res, next);
+  }
+);
 
 router.get('/', (req, res, next) => {
   controller.getAll(req, res, next);

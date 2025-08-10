@@ -5,6 +5,7 @@ import { LeaseService } from '../services/Lease.service';
 import { Lease } from '../entities/Lease';
 import { LeaseValidationTypes } from '../validations/Lease.validation';
 import { BadRequestError } from '../configs/error';
+import envConfig from '../configs/envConfig';
 
 @Service()
 export class LeaseController {
@@ -42,6 +43,24 @@ export class LeaseController {
     }
   }
 
+  async checkLeasePaymentReference(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const { reference } =
+        req.query as LeaseValidationTypes['getLeasePaymentReference'];
+
+      const data = await this.leaseService.checkLeasePaymentReference(
+        reference
+      );
+      return successResponse(res, 'Returning lease payment', data);
+    } catch (error) {
+      return next(error);
+    }
+  }
+
   async getOneLease(req: Request, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
@@ -61,15 +80,14 @@ export class LeaseController {
 
   async leasePaymentCallback(req: Request, res: Response, next: NextFunction) {
     try {
-      const { reference } = req.query;
+      const { reference } =
+        req.query as LeaseValidationTypes['getLeasePaymentReference'];
 
-      if (!reference) {
-        throw new BadRequestError('Reference is required');
-      }
+      await this.leaseService.processLeasePayment(reference);
 
-      await this.leaseService.processLeasePayment(reference as string);
-
-      return successResponse(res, 'Lease payment processed successfully');
+      return res.redirect(
+        `${envConfig.FRONTEND_URL}/tenant?reference=${reference}`
+      );
     } catch (error) {
       return next(error);
     }
