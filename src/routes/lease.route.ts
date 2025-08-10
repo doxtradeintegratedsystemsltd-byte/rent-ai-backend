@@ -4,6 +4,8 @@ import { LeaseController } from '../controllers/Lease.controller';
 import { verifyToken } from '../middleware/verifyToken';
 import Validator from '../middleware/Validator';
 import LeaseValidation from '../validations/Lease.validation';
+import { checkRole } from '../middleware/checkRole';
+import { RoleGroups } from '../utils/authUser';
 // import Validator from '../middleware/Validator';
 // import LeaseValidation from '../validations/Lease.validation';
 
@@ -24,9 +26,31 @@ router.post(
   }
 );
 
+router.get(
+  '/tenant',
+  verifyToken,
+  checkRole(RoleGroups.tenant),
+  (req, res, next) => {
+    controller.getAuthTenantLease(req, res, next);
+  }
+);
+
+router.get('/payment/callback', (req, res, next) => {
+  controller.leasePaymentCallback(req, res, next);
+});
+
 router.get('/', (req, res, next) => {
   controller.getAll(req, res, next);
 });
+
+router.get(
+  '/:id',
+  verifyToken,
+  checkRole(RoleGroups.allAdmins),
+  (req, res, next) => {
+    controller.getOneLease(req, res, next);
+  }
+);
 
 const LeaseRoutes = router;
 export default LeaseRoutes;

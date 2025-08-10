@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import { signJwt, signWithSecret, verifyJwtWithSecret } from '../utils/jwt';
 import { generateRandonString } from '../utils/generatePassword';
 import { Service } from 'typedi';

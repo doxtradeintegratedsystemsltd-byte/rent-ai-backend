@@ -1,9 +1,9 @@
 import { Job } from '../entities/Job';
-import envConfig from '../configs/envConfig';
 import { JobNames, JobStatus } from '../utils/job';
 import { JobService } from '../services/Job.service';
 import { Service } from 'typedi';
 import { ScheduleType } from '../interfaces/Job';
+import { LessThanOrEqual } from 'typeorm';
 
 @Service()
 export class CronJobModule {
@@ -25,9 +25,9 @@ export class CronJobModule {
         'Cron schedules are not supported. Please use timestamp-based scheduling.'
       );
     } else if ('timestamp' in schedule) {
-      if (schedule.timestamp.getTime() <= Date.now()) {
-        throw new Error('Provided timestamp is in the past.');
-      }
+      // if (schedule.timestamp.getTime() <= Date.now()) {
+      //   throw new Error('Provided timestamp is in the past.');
+      // }
       scheduledAt = schedule.timestamp;
     } else {
       throw new Error('Invalid schedule type.');
@@ -74,6 +74,7 @@ export class CronJobModule {
   }
 
   public startPolling(): void {
+    console.log('Starting job polling');
     // Poll every minute for jobs that are due
     this.pollingInterval = setInterval(async () => {
       await this.checkDueJobs();
@@ -87,7 +88,7 @@ export class CronJobModule {
         where: [
           {
             jobStatus: JobStatus.pending,
-            scheduledAt: { $lte: now } as any,
+            scheduledAt: LessThanOrEqual(now),
           },
         ],
       });

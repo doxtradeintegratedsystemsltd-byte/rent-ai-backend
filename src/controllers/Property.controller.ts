@@ -53,6 +53,8 @@ export class PropertyController {
           createdBy: true,
           currentLease: {
             tenant: true,
+            payment: true,
+            nextLease: true,
           },
         },
       });

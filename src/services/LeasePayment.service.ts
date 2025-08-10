@@ -5,10 +5,12 @@ import { LeasePayment } from '../entities/LeasePayment';
 import { User } from '../entities/User';
 import { Lease } from '../entities/Lease';
 import { PaymentStatus, PaymentType } from '../utils/lease';
+import { PaystackModule } from '../modules/Paystack.module';
+import envConfig from '../configs/envConfig';
 
 @Service()
 export class LeasePaymentService extends BaseService<LeasePayment> {
-  constructor() {
+  constructor(private paystackModule: PaystackModule) {
     super(dataSource.getRepository(LeasePayment));
   }
 
@@ -34,12 +36,15 @@ export class LeasePaymentService extends BaseService<LeasePayment> {
 
     let paymentLink;
     if (paymentType === PaymentType.PAYSTACK) {
-      // TODO: Implement paystack payment
-      // will get payment link and reference
-      // update payment with payment link and reference
-      // return payment link and reference
-      paymentLink = 'https://paystack.com/pay/1234567890';
-      payment.reference = '1234567890';
+      const { authorization_url, reference } =
+        await this.paystackModule.initializeTransaction({
+          amount: this.paystackModule.convertToKobo(lease.rentAmount),
+          email: lease.tenant.email,
+          callback_url: `${envConfig.BACKEND_URL}/api/leases/payment/callback`,
+        });
+
+      paymentLink = authorization_url;
+      payment.reference = reference;
 
       await this.repository.save(payment);
     }

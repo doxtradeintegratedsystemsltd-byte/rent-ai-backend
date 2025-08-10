@@ -24,7 +24,7 @@ export class LeasePayment {
   })
   type: PaymentType;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
+  @Column({ type: 'float', default: 0 })
   amount: number;
 
   @Column({ type: 'text', nullable: true, unique: true })

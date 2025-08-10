@@ -117,8 +117,8 @@ const initializeApp = async () => {
     app.use(ErrorHandlerMiddleware);
 
     app.listen(PORT, () => {
+      const cronJobModule = Container.get(CronJobModule);
       if (envConfig.RUN_JOBS) {
-        const cronJobModule = Container.get(CronJobModule);
         cronJobModule.startPolling();
       }
 

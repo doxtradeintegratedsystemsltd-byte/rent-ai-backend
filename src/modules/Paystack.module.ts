@@ -1,101 +1,30 @@
 import { Service } from 'typedi';
-import Paystack from 'paystack-api';
+import Paystack, {
+  CreateCustomerData,
+  CreatePlanData,
+  CreateRecipientData,
+  CreateSubscriptionData,
+  CreateTransferData,
+  InitializeTransactionData,
+  VerifyTransactionData,
+} from 'paystack-api';
 import { BadRequestError } from '../configs/error';
-
-export interface PaystackConfig {
-  secretKey: string;
-  publicKey: string;
-  baseUrl?: string;
-}
-
-export interface CreateCustomerData {
-  email: string;
-  first_name?: string;
-  last_name?: string;
-  phone?: string;
-  metadata?: Record<string, any>;
-}
-
-export interface InitializeTransactionData {
-  amount: number; // Amount in kobo (multiply by 100)
-  email: string;
-  reference?: string;
-  callback_url?: string;
-  currency?: string;
-  channels?: string[];
-  metadata?: Record<string, any>;
-  customer?: string; // Customer code
-  plan?: string; // Plan code
-  invoice_limit?: number;
-  split_code?: string;
-  subaccount?: string;
-  transaction_charge?: number;
-  bearer?: 'account' | 'subaccount';
-}
-
-export interface VerifyTransactionData {
-  reference: string;
-}
-
-export interface CreateTransferData {
-  source: 'balance';
-  amount: number; // Amount in kobo
-  recipient: string; // Recipient code
-  reason?: string;
-  currency?: string;
-  reference?: string;
-}
-
-export interface CreateRecipientData {
-  type: 'nuban' | 'mobile_money' | 'basa';
-  name: string;
-  account_number: string;
-  bank_code: string;
-  currency?: string;
-  description?: string;
-  metadata?: Record<string, any>;
-}
-
-export interface CreatePlanData {
-  name: string;
-  amount: number; // Amount in kobo
-  interval: 'daily' | 'weekly' | 'monthly' | 'yearly';
-  currency?: string;
-  description?: string;
-  send_invoices?: boolean;
-  send_sms?: boolean;
-  hosted_page?: boolean;
-  hosted_page_url?: string;
-  hosted_page_summary?: string;
-  metadata?: Record<string, any>;
-}
-
-export interface CreateSubscriptionData {
-  customer: string; // Customer email or code
-  plan: string; // Plan code
-  authorization?: string; // Authorization code
-  start_date?: string; // ISO date string
-}
-
-export interface WebhookEvent {
-  event: string;
-  data: Record<string, any>;
-}
+import envConfig from '../configs/envConfig';
 
 @Service()
 export class PaystackModule {
   private paystack: Paystack;
 
   constructor() {
-    const secretKey = process.env.PAYSTACK_SECRET_KEY;
-    const publicKey = process.env.PAYSTACK_PUBLIC_KEY;
+    const secretKey = envConfig.PAYSTACK_SECRET_KEY;
+    const publicKey = envConfig.PAYSTACK_PUBLIC_KEY;
 
     if (!secretKey || !publicKey) {
       throw new Error('Paystack secret key and public key are required');
     }
 
     this.paystack = new Paystack(secretKey, {
-      baseUrl: process.env.PAYSTACK_BASE_URL || 'https://api.paystack.co',
+      baseUrl: envConfig.PAYSTACK_BASE_URL || 'https://api.paystack.co',
     });
   }
 
@@ -178,8 +107,11 @@ export class PaystackModule {
         transaction_charge: data.transaction_charge,
         bearer: data.bearer,
       });
-
-      return response.data;
+      return response.data as {
+        authorization_url: string;
+        access_code: string;
+        reference: string;
+      };
     } catch (error: any) {
       throw new BadRequestError(
         `Failed to initialize transaction: ${error.message || 'Unknown error'}`
@@ -189,9 +121,10 @@ export class PaystackModule {
 
   async verifyTransaction(data: VerifyTransactionData) {
     try {
-      const response = await this.paystack.transaction.verify(data.reference);
+      const response = await this.paystack.transaction.verify(data);
       return response.data;
     } catch (error: any) {
+      console.error(error);
       throw new BadRequestError(
         `Failed to verify transaction: ${error.message || 'Unknown error'}`
       );

@@ -10,9 +10,6 @@ import { UserType } from '../utils/authUser';
 import { UserService } from './User.service';
 import { User } from '../entities/User';
 import { LeaseService } from './Lease.service';
-import { JobNames, JobObject } from '../utils/job';
-import { CronJobModule } from '../modules/CronJob.module';
-import { Lease } from '../entities/Lease';
 
 @Service()
 export class TenantService extends BaseService<Tenant> {
@@ -20,8 +17,7 @@ export class TenantService extends BaseService<Tenant> {
     private propertyService: PropertyService,
     private authService: AuthService,
     private userService: UserService,
-    private leaseService: LeaseService,
-    private cronJobModule: CronJobModule
+    private leaseService: LeaseService
   ) {
     super(dataSource.getRepository(Tenant));
   }
@@ -72,64 +68,13 @@ export class TenantService extends BaseService<Tenant> {
       currentLease: lease,
     });
 
-    console.log(typeof lease.endDate);
-    await this.setUpRentReminders(lease);
+    await this.leaseService.setUpRentReminders(lease);
 
     return {
       property: updatedProperty,
       tenant: updatedTenant,
       lease,
     };
-  }
-
-  private async setUpRentReminders(lease: Lease) {
-    const twoMonthsBefore = new Date(lease.endDate);
-    twoMonthsBefore.setMonth(twoMonthsBefore.getMonth() - 2);
-
-    const twoWeeksBefore = new Date(lease.endDate);
-    twoWeeksBefore.setDate(twoWeeksBefore.getDate() - 14);
-
-    const twoMonthsBeforeObject: JobObject[JobNames.rentDue] = {
-      leaseId: lease.id,
-      timestamp: twoMonthsBefore.toISOString(),
-      type: 'twoMonthsBefore',
-    };
-
-    const twoWeeksBeforeObject: JobObject[JobNames.rentDue] = {
-      leaseId: lease.id,
-      timestamp: twoWeeksBefore.toISOString(),
-      type: 'twoWeeksBefore',
-    };
-
-    const dueObject: JobObject[JobNames.rentDue] = {
-      leaseId: lease.id,
-      timestamp: new Date(lease.endDate).toISOString(),
-      type: 'due',
-    };
-
-    await Promise.all([
-      this.cronJobModule.scheduleJob(
-        JobNames.rentDue,
-        {
-          timestamp: twoMonthsBefore,
-        },
-        twoMonthsBeforeObject
-      ),
-      this.cronJobModule.scheduleJob(
-        JobNames.rentDue,
-        {
-          timestamp: twoWeeksBefore,
-        },
-        twoWeeksBeforeObject
-      ),
-      this.cronJobModule.scheduleJob(
-        JobNames.rentDue,
-        {
-          timestamp: new Date(lease.endDate),
-        },
-        dueObject
-      ),
-    ]);
   }
 
   private async createNewTenant(

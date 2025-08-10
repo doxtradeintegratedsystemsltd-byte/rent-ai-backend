@@ -80,6 +80,13 @@ export class Lease {
   @JoinColumn({ name: 'nextLeaseId' })
   nextLease: Lease | null;
 
+  @Column({ type: 'text', nullable: true })
+  previousLeaseId: string | null;
+
+  @ManyToOne(() => Lease)
+  @JoinColumn({ name: 'previousLeaseId' })
+  previousLease: Lease | null;
+
   @CreateDateColumn()
   createdAt: Date;
 

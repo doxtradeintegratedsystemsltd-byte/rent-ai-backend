@@ -29,7 +29,11 @@ export async function verifyToken(
 
     if (user) {
       const userService = Container.get(UserService);
-      const foundUser = await userService.findById(user.id);
+      const foundUser = await userService.findById(user.id, {
+        relations: {
+          tenant: true,
+        },
+      });
       req.user = foundUser;
       return next();
     } else {

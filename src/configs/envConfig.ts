@@ -20,6 +20,10 @@ const envVarsSchema = Joi.object()
     CLOUDINARY_API_KEY: Joi.string().required(),
     CLOUDINARY_API_SECRET: Joi.string().required(),
     RUN_JOBS: Joi.boolean().required(),
+    PAYSTACK_SECRET_KEY: Joi.string().required(),
+    PAYSTACK_PUBLIC_KEY: Joi.string().required(),
+    PAYSTACK_BASE_URL: Joi.string().optional(),
+    BACKEND_URL: Joi.string().required(),
   })
   .unknown();
 
@@ -45,6 +49,10 @@ const envConfig = {
   CLOUDINARY_API_KEY: envVars.CLOUDINARY_API_KEY as string,
   CLOUDINARY_API_SECRET: envVars.CLOUDINARY_API_SECRET as string,
   RUN_JOBS: envVars.RUN_JOBS as boolean,
+  PAYSTACK_SECRET_KEY: envVars.PAYSTACK_SECRET_KEY as string,
+  PAYSTACK_PUBLIC_KEY: envVars.PAYSTACK_PUBLIC_KEY as string,
+  PAYSTACK_BASE_URL: envVars.PAYSTACK_BASE_URL as string | null,
+  BACKEND_URL: envVars.BACKEND_URL as string,
 };
 
 export default envConfig;
