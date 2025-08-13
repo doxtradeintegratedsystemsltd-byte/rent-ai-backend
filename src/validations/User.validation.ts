@@ -1,12 +1,9 @@
 import { z } from 'zod';
+import { AnalysisPeriod } from '../utils/analytics';
 
 const UserValidation = {
-  create: z.object({
-    firstName: z.string(),
-    lastName: z.string(),
-    email: z.string().email(),
-    phoneNumber: z.string(),
-    levelOfEducation: z.string(),
+  getDashboardAnalytics: z.object({
+    period: z.nativeEnum(AnalysisPeriod),
   }),
 };
 

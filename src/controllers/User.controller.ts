@@ -4,6 +4,7 @@ import { successResponse } from '../utils/response';
 import { UserService } from '../services/User.service';
 import { User } from '../entities/User';
 import { UserType } from '../utils/authUser';
+import { UserValidationTypes } from '../validations/User.validation';
 
 @Service()
 export class UserController {
@@ -26,6 +27,23 @@ export class UserController {
     try {
       const user = req.user;
       return successResponse(res, 'Who am i', user);
+    } catch (error) {
+      return next(error);
+    }
+  }
+
+  async getDashboardData(req: Request, res: Response, next: NextFunction) {
+    try {
+      const user = req.user!;
+      const { period } =
+        req.query as UserValidationTypes['getDashboardAnalytics'];
+
+      const data = await this.userService.getDashboardData(
+        user.userType,
+        period
+      );
+
+      return successResponse(res, 'Dashboard data', data);
     } catch (error) {
       return next(error);
     }

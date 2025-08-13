@@ -7,6 +7,7 @@ import { Lease } from '../entities/Lease';
 import { PaymentStatus, PaymentType } from '../utils/lease';
 import { PaystackModule } from '../modules/Paystack.module';
 import envConfig from '../configs/envConfig';
+import { Between } from 'typeorm';
 
 @Service()
 export class LeasePaymentService extends BaseService<LeasePayment> {
@@ -49,5 +50,42 @@ export class LeasePaymentService extends BaseService<LeasePayment> {
       await this.repository.save(payment);
     }
     return { leasePayment: payment, paymentLink };
+  }
+
+  async getLeasePaymentAnalytics(
+    startDate: Date,
+    endDate: Date,
+    lastPeriod: Date
+  ) {
+    const [allPayments, currPayments, prevPayments] = await Promise.all([
+      this.getLeasePaymentsForPeriod(),
+      this.getLeasePaymentsForPeriod(startDate, endDate),
+      this.getLeasePaymentsForPeriod(lastPeriod, startDate),
+    ]);
+
+    return {
+      all: allPayments,
+      current: currPayments,
+      previous: prevPayments,
+    };
+  }
+
+  private async getLeasePaymentsForPeriod(startDate?: Date, endDate?: Date) {
+    const paymentDate =
+      startDate && endDate ? Between(startDate, endDate) : undefined;
+
+    const payments = await this.findMany({
+      where: {
+        status: PaymentStatus.COMPLETED,
+        // type: PaymentType.PAYSTACK,
+        paymentDate,
+      },
+      select: {
+        id: true,
+        amount: true,
+      },
+    });
+
+    return payments.reduce((acc, payment) => acc + Number(payment.amount), 0);
   }
 }

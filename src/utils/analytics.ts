@@ -1,3 +1,6 @@
+import { Between, FindOptionsWhere, ObjectLiteral } from 'typeorm';
+import { BaseService } from '../services/BaseService';
+
 export enum AnalysisPeriod {
   today = 'today',
   thisWeek = 'thisWeek',
@@ -204,4 +207,32 @@ export const getAnalysisPayload = () => {
   };
 
   return payload;
+};
+
+export const getEntityCounts = async <T extends ObjectLiteral>(
+  service: BaseService<T>,
+  whereFilter?: FindOptionsWhere<T> | null,
+  startOfMonth?: Date,
+  endOfMonth?: Date
+) => {
+  let where: FindOptionsWhere<T> = whereFilter ? { ...whereFilter } : {};
+
+  if (startOfMonth && endOfMonth) {
+    where = {
+      ...where,
+      createdAt: Between(startOfMonth, endOfMonth),
+    };
+  }
+
+  const data = await service.findAllPaginated(
+    {
+      page: 0,
+      size: 10,
+    },
+    {
+      where: Object.keys(where).length > 0 ? where : undefined,
+    }
+  );
+
+  return data.totalItems;
 };
