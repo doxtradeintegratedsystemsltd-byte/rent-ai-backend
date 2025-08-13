@@ -25,6 +25,10 @@ const envVarsSchema = Joi.object()
     PAYSTACK_BASE_URL: Joi.string().optional(),
     BACKEND_URL: Joi.string().required(),
     FRONTEND_URL: Joi.string().required(),
+    MAIL_USER: Joi.string().required(),
+    MAIL_PASSWORD: Joi.string().required(),
+    MAIL_NAME: Joi.string().required(),
+    MAIL_FROM: Joi.string().required(),
   })
   .unknown();
 
@@ -55,6 +59,10 @@ const envConfig = {
   PAYSTACK_BASE_URL: envVars.PAYSTACK_BASE_URL as string | null,
   BACKEND_URL: envVars.BACKEND_URL as string,
   FRONTEND_URL: envVars.FRONTEND_URL as string,
+  MAIL_USER: envVars.MAIL_USER as string,
+  MAIL_PASSWORD: envVars.MAIL_PASSWORD as string,
+  MAIL_NAME: envVars.MAIL_NAME as string,
+  MAIL_FROM: envVars.MAIL_FROM as string,
 };
 
 export default envConfig;

@@ -16,11 +16,41 @@ import { Property } from '../entities/Property';
 import { Lease } from '../entities/Lease';
 import { RentStatus } from '../utils/lease';
 import { BadRequestError } from '../configs/error';
+import { NotificationTrigger } from '../interfaces/Notification';
 
 @Service()
 export class NotificationService extends BaseService<Notification> {
   constructor() {
     super(dataSource.getRepository(Notification));
+  }
+
+  createNotificationMailTrigger(trigger: NotificationTrigger) {
+    const notificationFunction = async (success: boolean) => {
+      this.createNotificationMail({
+        ...trigger,
+        status: success
+          ? NotificationStatus.COMPLETED
+          : NotificationStatus.FAILED,
+      });
+    };
+
+    return notificationFunction;
+  }
+
+  async createNotificationMail(
+    trigger: NotificationTrigger & { status: NotificationStatus }
+  ) {
+    const { userType, tenant, admin, notificationType, status } = trigger;
+
+    const notification = await this.create({
+      userType,
+      tenant,
+      admin,
+      notificationType,
+      status,
+    });
+
+    return notification;
   }
 
   async createTenantAssignedNotification(

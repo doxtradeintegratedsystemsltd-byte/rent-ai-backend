@@ -15,6 +15,7 @@ import ErrorHandlerMiddleware from './middleware/ErrorHandler';
 import { NotFoundMiddleware } from './middleware/NotFound';
 import { logError } from './utils/errorLogging';
 import { CronJobModule } from './modules/CronJob.module';
+import { verifyMailSetup } from './configs/mailer';
 
 dotenv.config();
 
@@ -57,6 +58,8 @@ const initializeApp = async () => {
     const appRoutes = await import('./routes/index');
 
     const app = express();
+
+    verifyMailSetup();
 
     app.use((req, res, next) => {
       const originalJson = express.json();

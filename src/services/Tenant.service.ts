@@ -10,6 +10,9 @@ import { UserType } from '../utils/authUser';
 import { UserService } from './User.service';
 import { User } from '../entities/User';
 import { LeaseService } from './Lease.service';
+import { NotificationStatus, NotificationType } from '../utils/notification';
+import { NotificationService } from './Notification.service';
+import { MailerModule } from '../modules/Mailer.module';
 
 @Service()
 export class TenantService extends BaseService<Tenant> {
@@ -17,7 +20,9 @@ export class TenantService extends BaseService<Tenant> {
     private propertyService: PropertyService,
     private authService: AuthService,
     private userService: UserService,
-    private leaseService: LeaseService
+    private leaseService: LeaseService,
+    private notificationService: NotificationService,
+    private mailerModule: MailerModule
   ) {
     super(dataSource.getRepository(Tenant));
   }
@@ -99,7 +104,7 @@ export class TenantService extends BaseService<Tenant> {
       throw new BadRequestError('Tenant already exists');
     }
 
-    const { user } = await this.authService.createUser(
+    const { user, password } = await this.authService.createUser(
       {
         email: body.email,
         firstName: body.firstName,
@@ -123,6 +128,19 @@ export class TenantService extends BaseService<Tenant> {
       tenantId: tenant.id,
     });
 
+    await this.mailerModule.sendNewTenantMail(
+      {
+        to: body.email,
+        email: body.email,
+        name: body.firstName,
+        password: password,
+      },
+      this.notificationService.createNotificationMailTrigger({
+        userType: UserType.TENANT,
+        tenant,
+        notificationType: NotificationType.ACCOUNT_CREATED,
+      })
+    );
     return tenant;
   }
 

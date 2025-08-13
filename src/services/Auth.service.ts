@@ -8,12 +8,17 @@ import { UserType } from '../utils/authUser';
 import { BadRequestError } from '../configs/error';
 import { AuthModule } from '../modules/Auth.module';
 import { User } from '../entities/User';
+import { MailerModule } from '../modules/Mailer.module';
+import { NotificationService } from './Notification.service';
+import { NotificationStatus, NotificationType } from '../utils/notification';
 
 @Service()
 export class AuthService extends BaseService<Auth> {
   constructor(
     private userService: UserService,
-    private authModule: AuthModule
+    private authModule: AuthModule,
+    private mailerModule: MailerModule,
+    private notificationService: NotificationService
   ) {
     super(dataSource.getRepository(Auth));
   }
@@ -128,6 +133,23 @@ export class AuthService extends BaseService<Auth> {
       userId: user.id,
     });
 
-    return { user, auth };
+    switch (userType) {
+      case UserType.ADMIN: {
+        this.mailerModule.sendNewAdminMail(
+          {
+            to: body.email,
+            email: body.email,
+            name: body.firstName,
+            password: password,
+          },
+          this.notificationService.createNotificationMailTrigger({
+            userType,
+            admin: user,
+            notificationType: NotificationType.ACCOUNT_CREATED,
+          })
+        );
+      }
+    }
+    return { user, auth, password };
   }
 }
