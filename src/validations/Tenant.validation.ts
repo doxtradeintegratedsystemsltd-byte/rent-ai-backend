@@ -18,6 +18,14 @@ const TenantValidation = {
     propertyId: z.string(),
     paymentReceipt: z.string(),
   }),
+  update: z.object({
+    firstName: z.string().optional(),
+    lastName: z.string().optional(),
+    email: z.string().email().toLowerCase().optional(),
+    photoUrl: z.string().optional(),
+    phoneNumber: z.string().optional(),
+    levelOfEducation: z.string().optional(),
+  }),
 };
 
 export type TenantValidationTypes = {

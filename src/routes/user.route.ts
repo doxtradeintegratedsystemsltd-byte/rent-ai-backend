@@ -34,5 +34,44 @@ router.get(
   }
 );
 
+router.get(
+  '/admins/:id',
+  verifyToken,
+  checkRole(RoleGroups.superAdmin),
+  Validator(UserValidation.getDashboardAnalytics, 'query'),
+  (req, res, next) => {
+    controller.getOneAdmin(req, res, next);
+  }
+);
+
+router.put(
+  '/admins/:id',
+  verifyToken,
+  checkRole(RoleGroups.superAdmin),
+  Validator(UserValidation.updateProfile),
+  (req, res, next) => {
+    controller.updateAdminProfile(req, res, next);
+  }
+);
+
+router.delete(
+  '/admins/:id',
+  verifyToken,
+  checkRole(RoleGroups.superAdmin),
+  (req, res, next) => {
+    controller.deleteAdmin(req, res, next);
+  }
+);
+
+router.put(
+  '/profile',
+  verifyToken,
+  checkRole(RoleGroups.allAdmins),
+  Validator(UserValidation.updateProfile),
+  (req, res, next) => {
+    controller.updateAuthProfile(req, res, next);
+  }
+);
+
 const UserRoutes = router;
 export default UserRoutes;

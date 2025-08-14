@@ -1,4 +1,4 @@
-import { Service } from 'typedi';
+import { Service, Container } from 'typedi';
 import { BaseService } from './BaseService';
 import { dataSource } from '../configs/dtSource';
 import { Auth } from '../entities/Auth';
@@ -15,12 +15,15 @@ import { NotificationStatus, NotificationType } from '../utils/notification';
 @Service()
 export class AuthService extends BaseService<Auth> {
   constructor(
-    private userService: UserService,
     private authModule: AuthModule,
     private mailerModule: MailerModule,
     private notificationService: NotificationService
   ) {
     super(dataSource.getRepository(Auth));
+  }
+
+  private get userService(): UserService {
+    return Container.get(UserService);
   }
 
   async createOneTimeSuperAdmin(

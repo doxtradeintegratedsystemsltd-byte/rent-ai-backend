@@ -12,7 +12,7 @@ const username = envConfig.DB_USERNAME;
 const password = envConfig.DB_PASSWORD;
 const host = envConfig.DB_HOST;
 const database = envConfig.DB_NAME;
-const port = envConfig.DB_PORT | 5432;
+const port = envConfig.DB_PORT || 5432;
 
 const dbConfig: DataSourceOptions = {
   type: 'postgres',

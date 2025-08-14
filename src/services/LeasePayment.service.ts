@@ -7,7 +7,7 @@ import { Lease } from '../entities/Lease';
 import { PaymentStatus, PaymentType } from '../utils/lease';
 import { PaystackModule } from '../modules/Paystack.module';
 import envConfig from '../configs/envConfig';
-import { Between } from 'typeorm';
+import { Between, FindOptionsWhere } from 'typeorm';
 
 @Service()
 export class LeasePaymentService extends BaseService<LeasePayment> {
@@ -55,12 +55,15 @@ export class LeasePaymentService extends BaseService<LeasePayment> {
   async getLeasePaymentAnalytics(
     startDate: Date,
     endDate: Date,
-    lastPeriod: Date
+    lastPeriod: Date,
+    adminId?: string
   ) {
+    const whereFilter = adminId ? { lease: { createdById: adminId } } : null;
+
     const [allPayments, currPayments, prevPayments] = await Promise.all([
-      this.getLeasePaymentsForPeriod(),
-      this.getLeasePaymentsForPeriod(startDate, endDate),
-      this.getLeasePaymentsForPeriod(lastPeriod, startDate),
+      this.getLeasePaymentsForPeriod(whereFilter),
+      this.getLeasePaymentsForPeriod(whereFilter, startDate, endDate),
+      this.getLeasePaymentsForPeriod(whereFilter, lastPeriod, startDate),
     ]);
 
     return {
@@ -70,12 +73,17 @@ export class LeasePaymentService extends BaseService<LeasePayment> {
     };
   }
 
-  private async getLeasePaymentsForPeriod(startDate?: Date, endDate?: Date) {
+  private async getLeasePaymentsForPeriod(
+    whereFilter: FindOptionsWhere<LeasePayment> | null = null,
+    startDate?: Date,
+    endDate?: Date
+  ) {
     const paymentDate =
       startDate && endDate ? Between(startDate, endDate) : undefined;
 
     const payments = await this.findMany({
       where: {
+        ...whereFilter,
         status: PaymentStatus.COMPLETED,
         // type: PaymentType.PAYSTACK,
         paymentDate,

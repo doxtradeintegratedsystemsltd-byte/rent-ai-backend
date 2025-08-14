@@ -30,10 +30,10 @@ export class User {
   userType: UserType;
 
   @Column({ type: 'text', nullable: true })
-  photoUrl: string;
+  photoUrl: string | null;
 
   @Column({ type: 'text', nullable: true })
-  phoneNumber: string;
+  phoneNumber: string | null;
 
   @OneToOne(() => Auth, (auth) => auth.user, { cascade: true })
   auth: Auth;

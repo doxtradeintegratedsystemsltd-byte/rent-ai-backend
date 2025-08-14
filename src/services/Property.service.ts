@@ -5,11 +5,81 @@ import { Property } from '../entities/Property';
 import { PropertyValidationTypes } from '../validations/Property.validation';
 import { User } from '../entities/User';
 import { BadRequestError } from '../configs/error';
+import { PaginationRequest } from '../types/CustomTypes';
+import { FindOptionsWhere, ILike, In, IsNull, Not } from 'typeorm';
+import { UserType } from '../utils/authUser';
+import { RentStatus } from '../utils/lease';
+import { deepMerge } from '../utils/searchFilter';
 
 @Service()
 export class PropertyService extends BaseService<Property> {
   constructor() {
     super(dataSource.getRepository(Property));
+  }
+
+  async getAllProperties(query: PaginationRequest, authUser: User) {
+    const { search, status, adminId } = query;
+
+    const defaultFilter: FindOptionsWhere<Property> = {};
+    const searchFilters: FindOptionsWhere<Property>[] = [];
+
+    if (authUser.userType === UserType.ADMIN) {
+      defaultFilter.createdById = authUser.id;
+    } else {
+      if (adminId) {
+        defaultFilter.createdById = adminId;
+      }
+    }
+
+    if (search) {
+      const searchItem = ILike(`%${search}%`);
+      searchFilters.push(
+        { propertyName: searchItem },
+        { propertyAddress: searchItem },
+        { propertyArea: searchItem },
+        { propertyState: searchItem }
+      );
+    }
+
+    if (status) {
+      switch (status) {
+        case 'occupied': {
+          defaultFilter.currentLease = Not(IsNull());
+          break;
+        }
+        case 'unoccupied': {
+          defaultFilter.currentLease = IsNull();
+          break;
+        }
+        case 'rent-paid': {
+          defaultFilter.currentLease = {
+            rentStatus: RentStatus.PAID,
+          };
+          break;
+        }
+        case 'rent-unpaid': {
+          defaultFilter.currentLease = {
+            rentStatus: In([RentStatus.DUE, RentStatus.OVER_DUE]),
+          };
+          break;
+        }
+      }
+    }
+
+    const where = searchFilters.length
+      ? searchFilters.map((filter) => deepMerge(defaultFilter, filter))
+      : defaultFilter;
+
+    const properties = await this.findAllPaginated(query, {
+      where,
+      relations: {
+        createdBy: true,
+        currentLease: {
+          tenant: true,
+        },
+      },
+    });
+    return properties;
   }
 
   createProperty(body: PropertyValidationTypes['create'], authUser: User) {

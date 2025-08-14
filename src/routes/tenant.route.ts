@@ -27,5 +27,25 @@ router.get('/', (req, res, next) => {
   controller.getAll(req, res, next);
 });
 
+router.put(
+  '/profile',
+  verifyToken,
+  checkRole(RoleGroups.tenant),
+  Validator(TenantValidation.update),
+  (req, res, next) => {
+    controller.updateAuthTenant(req, res, next);
+  }
+);
+
+router.put(
+  '/:id',
+  verifyToken,
+  checkRole(RoleGroups.allAdmins),
+  Validator(TenantValidation.update),
+  (req, res, next) => {
+    controller.updateTenant(req, res, next);
+  }
+);
+
 const TenantRoutes = router;
 export default TenantRoutes;

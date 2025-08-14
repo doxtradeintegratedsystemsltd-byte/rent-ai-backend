@@ -35,4 +35,29 @@ export class TenantController {
       return next(error);
     }
   }
+
+  async updateAuthTenant(req: Request, res: Response, next: NextFunction) {
+    try {
+      const authUser = req.user!;
+      const body = req.body as TenantValidationTypes['update'];
+
+      const data = await this.tenantService.updateTenant(authUser.tenant, body);
+      return successResponse(res, 'Update Success', data);
+    } catch (error) {
+      return next(error);
+    }
+  }
+
+  async updateTenant(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { id } = req.params;
+      const body = req.body as TenantValidationTypes['update'];
+      const tenant = await this.tenantService.findById(id);
+
+      const data = await this.tenantService.updateTenant(tenant, body);
+      return successResponse(res, 'Update Success', data);
+    } catch (error) {
+      return next(error);
+    }
+  }
 }

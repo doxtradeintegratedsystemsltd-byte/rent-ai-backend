@@ -146,26 +146,41 @@ export class TenantService extends BaseService<Tenant> {
 
   async updateTenant(
     tenant: Tenant,
-    body: Pick<
-      TenantValidationTypes['create'],
-      'firstName' | 'lastName' | 'phoneNumber' | 'levelOfEducation' | 'photoUrl'
+    body: Partial<
+      Pick<
+        TenantValidationTypes['create'],
+        | 'firstName'
+        | 'lastName'
+        | 'phoneNumber'
+        | 'levelOfEducation'
+        | 'photoUrl'
+        | 'email'
+      >
     >
   ) {
-    const { firstName, lastName, phoneNumber, levelOfEducation, photoUrl } =
-      body;
+    const {
+      firstName,
+      lastName,
+      phoneNumber,
+      levelOfEducation,
+      photoUrl,
+      email,
+    } = body;
 
     const updatedTenant = await this.update(tenant.id, {
       firstName,
       lastName,
       phoneNumber,
       levelOfEducation,
+      email,
     });
 
-    await this.userService.update(tenant.user.id, {
+    await this.userService.updateProfile(tenant.user.id, {
       firstName,
       lastName,
       phoneNumber,
       photoUrl,
+      email,
     });
 
     return updatedTenant;
