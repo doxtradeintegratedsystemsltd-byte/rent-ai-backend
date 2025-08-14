@@ -25,7 +25,6 @@ const dbConfig: DataSourceOptions = {
   synchronize: true,
   logging: false,
   name: 'default',
-  ...(password && { ssl: { rejectUnauthorized: true } }),
 };
 
 export default dbConfig;
