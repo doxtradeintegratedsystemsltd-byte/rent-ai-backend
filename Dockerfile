@@ -33,6 +33,9 @@ RUN yarn install --frozen-lockfile --production
 # Copy built application from builder stage
 COPY --from=builder /app/dist ./dist
 
+# Copy assets folder (needed for mail templates)
+COPY --from=builder /app/assets ./assets
+
 # Create non-root user for security
 RUN addgroup -g 1001 -S nodejs
 RUN adduser -S nodejs -u 1001
