@@ -1,4 +1,4 @@
-import { Service } from 'typedi';
+import { Service, Container } from 'typedi';
 import { BaseService } from './BaseService';
 import { dataSource } from '../configs/dtSource';
 import { Job } from '../entities/Job';
@@ -15,11 +15,16 @@ import { BadRequestError } from '../configs/error';
 
 @Service()
 export class JobService extends BaseService<Job> {
-  constructor(
-    private leaseService: LeaseService,
-    private notificationService: NotificationService
-  ) {
+  constructor() {
     super(dataSource.getRepository(Job));
+  }
+
+  private get leaseService(): LeaseService {
+    return Container.get(LeaseService);
+  }
+
+  private get notificationService(): NotificationService {
+    return Container.get(NotificationService);
   }
 
   async handleJobExecution(job: Job): Promise<void> {

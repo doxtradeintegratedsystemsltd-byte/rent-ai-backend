@@ -14,12 +14,20 @@ import { NotificationStatus, NotificationType } from '../utils/notification';
 
 @Service()
 export class AuthService extends BaseService<Auth> {
-  constructor(
-    private authModule: AuthModule,
-    private mailerModule: MailerModule,
-    private notificationService: NotificationService
-  ) {
+  constructor() {
     super(dataSource.getRepository(Auth));
+  }
+
+  private get authModule(): AuthModule {
+    return Container.get(AuthModule);
+  }
+
+  private get mailerModule(): MailerModule {
+    return Container.get(MailerModule);
+  }
+
+  private get notificationService(): NotificationService {
+    return Container.get(NotificationService);
   }
 
   private get userService(): UserService {

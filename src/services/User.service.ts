@@ -24,12 +24,20 @@ import { BadRequestError } from '../configs/error';
 
 @Service()
 export class UserService extends BaseService<User> {
-  constructor(
-    private propertyService: PropertyService,
-    private tenantService: TenantService,
-    private leasePaymentService: LeasePaymentService
-  ) {
+  constructor() {
     super(dataSource.getRepository(User));
+  }
+
+  private get propertyService(): PropertyService {
+    return Container.get(PropertyService);
+  }
+
+  private get tenantService(): TenantService {
+    return Container.get(TenantService);
+  }
+
+  private get leasePaymentService(): LeasePaymentService {
+    return Container.get(LeasePaymentService);
   }
 
   private get authService(): AuthService {

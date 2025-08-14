@@ -47,6 +47,7 @@ export class NotificationService extends BaseService<Notification> {
       tenant,
       admin,
       notificationType,
+      notificationChannel: NotificationChannel.EMAIL,
       status,
     });
 

@@ -1,4 +1,4 @@
-import { Service } from 'typedi';
+import { Service, Container } from 'typedi';
 import { BaseService } from './BaseService';
 import { dataSource } from '../configs/dtSource';
 import { LeasePayment } from '../entities/LeasePayment';
@@ -11,8 +11,12 @@ import { Between, FindOptionsWhere } from 'typeorm';
 
 @Service()
 export class LeasePaymentService extends BaseService<LeasePayment> {
-  constructor(private paystackModule: PaystackModule) {
+  constructor() {
     super(dataSource.getRepository(LeasePayment));
+  }
+
+  private get paystackModule(): PaystackModule {
+    return Container.get(PaystackModule);
   }
 
   async createLeasePayment(

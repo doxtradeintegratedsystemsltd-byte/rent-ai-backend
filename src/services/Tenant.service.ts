@@ -1,4 +1,4 @@
-import { Service } from 'typedi';
+import Container, { Service } from 'typedi';
 import { BaseService } from './BaseService';
 import { dataSource } from '../configs/dtSource';
 import { Tenant } from '../entities/Tenant';
@@ -16,15 +16,32 @@ import { MailerModule } from '../modules/Mailer.module';
 
 @Service()
 export class TenantService extends BaseService<Tenant> {
-  constructor(
-    private propertyService: PropertyService,
-    private authService: AuthService,
-    private userService: UserService,
-    private leaseService: LeaseService,
-    private notificationService: NotificationService,
-    private mailerModule: MailerModule
-  ) {
+  constructor() {
     super(dataSource.getRepository(Tenant));
+  }
+
+  private get propertyService(): PropertyService {
+    return Container.get(PropertyService);
+  }
+
+  private get authService(): AuthService {
+    return Container.get(AuthService);
+  }
+
+  private get leaseService(): LeaseService {
+    return Container.get(LeaseService);
+  }
+
+  private get notificationService(): NotificationService {
+    return Container.get(NotificationService);
+  }
+
+  private get mailerModule(): MailerModule {
+    return Container.get(MailerModule);
+  }
+
+  private get userService() {
+    return Container.get(UserService);
   }
 
   async addTenant(body: TenantValidationTypes['create'], authUser: User) {

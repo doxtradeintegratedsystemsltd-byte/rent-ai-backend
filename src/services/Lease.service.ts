@@ -24,12 +24,20 @@ import { CronJobModule } from '../modules/CronJob.module';
 
 @Service()
 export class LeaseService extends BaseService<Lease> {
-  constructor(
-    private leasePaymentService: LeasePaymentService,
-    private propertyService: PropertyService,
-    private paystackModule: PaystackModule
-  ) {
+  constructor() {
     super(dataSource.getRepository(Lease));
+  }
+
+  private get leasePaymentService(): LeasePaymentService {
+    return Container.get(LeasePaymentService);
+  }
+
+  private get propertyService(): PropertyService {
+    return Container.get(PropertyService);
+  }
+
+  private get paystackModule(): PaystackModule {
+    return Container.get(PaystackModule);
   }
 
   private async createLease(
