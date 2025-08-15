@@ -23,9 +23,14 @@ router.post(
   }
 );
 
-router.get('/', (req, res, next) => {
-  controller.getAll(req, res, next);
-});
+router.get(
+  '/',
+  verifyToken,
+  checkRole(RoleGroups.allAdmins),
+  (req, res, next) => {
+    controller.getAll(req, res, next);
+  }
+);
 
 router.put(
   '/profile',

@@ -53,10 +53,6 @@ router.get(
   }
 );
 
-router.get('/', (req, res, next) => {
-  controller.getAll(req, res, next);
-});
-
 router.get(
   '/:id',
   verifyToken,

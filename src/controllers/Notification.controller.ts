@@ -3,6 +3,7 @@ import { Service } from 'typedi';
 import { successResponse } from '../utils/response';
 import { NotificationService } from '../services/Notification.service';
 import { Notification } from '../entities/Notification';
+import { NotificationStatus } from '../utils/notification';
 
 @Service()
 export class NotificationController {
@@ -44,6 +45,7 @@ export class NotificationController {
       const { id } = req.params;
       const notification = await this.notificationService.update(id, {
         seen: true,
+        status: NotificationStatus.COMPLETED,
       });
       return successResponse(res, 'Notification marked as read', notification);
     } catch (error) {

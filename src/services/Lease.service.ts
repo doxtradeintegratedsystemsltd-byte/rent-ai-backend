@@ -399,29 +399,28 @@ export class LeaseService extends BaseService<Lease> {
     };
 
     const cronJobModule = Container.get(CronJobModule);
+    await cronJobModule.scheduleJob(
+      JobNames.rentDue,
+      {
+        timestamp: twoMonthsBefore,
+      },
+      twoMonthsBeforeObject
+    );
 
-    await Promise.all([
-      cronJobModule.scheduleJob(
-        JobNames.rentDue,
-        {
-          timestamp: twoMonthsBefore,
-        },
-        twoMonthsBeforeObject
-      ),
-      cronJobModule.scheduleJob(
-        JobNames.rentDue,
-        {
-          timestamp: twoWeeksBefore,
-        },
-        twoWeeksBeforeObject
-      ),
-      cronJobModule.scheduleJob(
-        JobNames.rentDue,
-        {
-          timestamp: new Date(lease.endDate),
-        },
-        dueObject
-      ),
-    ]);
+    await cronJobModule.scheduleJob(
+      JobNames.rentDue,
+      {
+        timestamp: twoWeeksBefore,
+      },
+      twoWeeksBeforeObject
+    );
+
+    await cronJobModule.scheduleJob(
+      JobNames.rentDue,
+      {
+        timestamp: new Date(lease.endDate),
+      },
+      dueObject
+    );
   }
 }

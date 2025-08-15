@@ -100,10 +100,16 @@ export class PropertyService extends BaseService<Property> {
   }
 
   async softDeleteProperty(id: string) {
-    const property = await this.findById(id);
+    const property = await this.findById(id, {
+      relations: {
+        currentLease: true,
+      },
+    });
 
-    if (property.deletedAt) {
-      throw new BadRequestError('Property already deleted');
+    if (property.currentLease) {
+      throw new BadRequestError(
+        'Property currently has an active lease. Please remove the tenant first.'
+      );
     }
 
     await this.softDelete(id);

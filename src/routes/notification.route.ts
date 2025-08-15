@@ -24,7 +24,7 @@ router.put('/user/mark-read/:id', verifyToken, (req, res, next) => {
   controller.markAsRead(req, res, next);
 });
 
-router.patch('/user/mark-all-read', verifyToken, (req, res, next) => {
+router.put('/user/mark-all-read', verifyToken, (req, res, next) => {
   controller.markAllAsRead(req, res, next);
 });
 

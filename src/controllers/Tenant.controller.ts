@@ -14,10 +14,14 @@ export class TenantController {
       const tenants = await this.tenantService.findAllPaginated(req.query, {
         relations: {
           currentLease: {
-            property: true,
+            createdBy: true,
+            property: {
+              createdBy: true,
+            },
           },
         },
       });
+
       return successResponse(res, 'Returning tenants', tenants);
     } catch (error) {
       return next(error);
@@ -41,7 +45,13 @@ export class TenantController {
       const authUser = req.user!;
       const body = req.body as TenantValidationTypes['update'];
 
-      const data = await this.tenantService.updateTenant(authUser.tenant, body);
+      const tenant = await this.tenantService.findById(authUser.tenant.id, {
+        relations: {
+          user: true,
+        },
+      });
+
+      const data = await this.tenantService.updateTenant(tenant, body);
       return successResponse(res, 'Update Success', data);
     } catch (error) {
       return next(error);
@@ -52,7 +62,12 @@ export class TenantController {
     try {
       const { id } = req.params;
       const body = req.body as TenantValidationTypes['update'];
-      const tenant = await this.tenantService.findById(id);
+
+      const tenant = await this.tenantService.findById(id, {
+        relations: {
+          user: true,
+        },
+      });
 
       const data = await this.tenantService.updateTenant(tenant, body);
       return successResponse(res, 'Update Success', data);
