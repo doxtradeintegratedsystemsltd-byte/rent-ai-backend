@@ -11,6 +11,7 @@ import { User } from '../entities/User';
 import { MailerModule } from '../modules/Mailer.module';
 import { NotificationService } from './Notification.service';
 import { NotificationStatus, NotificationType } from '../utils/notification';
+import envConfig from '../configs/envConfig';
 
 @Service()
 export class AuthService extends BaseService<Auth> {
@@ -162,5 +163,124 @@ export class AuthService extends BaseService<Auth> {
       }
     }
     return { user, auth, password };
+  }
+
+  async forgotPasswordMail(email: string) {
+    const auth = await this.findOne({
+      where: {
+        email,
+      },
+      relations: {
+        user: true,
+      },
+    });
+
+    if (!auth) {
+      return null;
+    }
+
+    if (auth.user.deletedAt) {
+      return null;
+    }
+
+    const secret = this.generatePasswordResetSecret(auth);
+    const activationToken = await this.authModule.createResetPasswordToken(
+      auth.userId,
+      secret
+    );
+
+    const resetLink = `${envConfig.FRONTEND_URL}/reset-password?token=${activationToken}&userId=${auth.userId}`;
+    await this.mailerModule.sendPasswordResetLinkMail(
+      {
+        to: auth.email,
+        name: auth.user.firstName,
+        resetLink,
+      },
+      this.notificationService.createNotificationMailTrigger({
+        userId: auth.userId,
+        userType: auth.user.userType,
+        notificationType: NotificationType.PASSWORD_RESET,
+      })
+    );
+
+    return true;
+  }
+
+  async verifyPasswordResetLink({
+    token,
+    userId,
+  }: AuthValidationTypes['verifyPasswordResetLink']) {
+    const auth = await this.findOne({
+      where: {
+        userId,
+      },
+      relations: {
+        user: true,
+      },
+    });
+
+    if (!auth) {
+      throw new BadRequestError('Invalid reset link');
+    }
+
+    const secret = this.generatePasswordResetSecret(auth);
+    const isValid = await this.authModule.verifyResetPasswordToken(
+      token,
+      secret
+    );
+    if (!isValid) {
+      throw new BadRequestError('Invalid reset link');
+    }
+
+    return {
+      authId: auth.id,
+      userId: auth.userId,
+      email: auth.email,
+      firstName: auth.user.firstName,
+      createdAt: auth.createdAt,
+      updatedAt: auth.updatedAt,
+    };
+  }
+
+  async resetPassword({
+    password,
+    token,
+    userId,
+  }: AuthValidationTypes['resetPassword']) {
+    const { authId } = await this.verifyPasswordResetLink({
+      token,
+      userId,
+    });
+
+    const hashedPassword = await this.authModule.hashPassword(password);
+    await this.update(authId, {
+      password: hashedPassword,
+    });
+  }
+
+  async changePassword(
+    { password }: AuthValidationTypes['changePassword'],
+    authUser: User
+  ) {
+    const auth = await this.findOne({
+      where: {
+        userId: authUser.id,
+      },
+    });
+
+    if (!auth) {
+      throw new BadRequestError('Invalid user');
+    }
+
+    const hashedPassword = await this.authModule.hashPassword(password);
+    await this.update(auth.id, {
+      password: hashedPassword,
+    });
+  }
+
+  private generatePasswordResetSecret(auth: Auth) {
+    const secret = `${auth.password}!${auth.updatedAt.toISOString()}`;
+
+    return secret;
   }
 }

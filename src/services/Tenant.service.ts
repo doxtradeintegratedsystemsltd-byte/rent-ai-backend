@@ -13,6 +13,10 @@ import { LeaseService } from './Lease.service';
 import { NotificationStatus, NotificationType } from '../utils/notification';
 import { NotificationService } from './Notification.service';
 import { MailerModule } from '../modules/Mailer.module';
+import { PaginationRequest } from '../types/CustomTypes';
+import { FindOptionsWhere, ILike, In, IsNull, Not } from 'typeorm';
+import { RentStatus } from '../utils/lease';
+import { deepMerge } from '../utils/searchFilter';
 
 @Service()
 export class TenantService extends BaseService<Tenant> {
@@ -42,6 +46,71 @@ export class TenantService extends BaseService<Tenant> {
 
   private get userService() {
     return Container.get(UserService);
+  }
+
+  async getAllTenants(query: PaginationRequest, authUser: User) {
+    const { search, status, adminId } = query;
+
+    const defaultFilter: FindOptionsWhere<Tenant> = {};
+    const searchFilters: FindOptionsWhere<Tenant>[] = [];
+
+    if (authUser.userType === UserType.ADMIN) {
+      defaultFilter.createdById = authUser.id;
+    } else {
+      if (adminId) {
+        defaultFilter.createdById = adminId;
+      }
+    }
+
+    if (search) {
+      const searchItem = ILike(`%${search}%`);
+      searchFilters.push(
+        { firstName: searchItem },
+        { lastName: searchItem },
+        { email: searchItem },
+        { phoneNumber: searchItem }
+      );
+    }
+
+    if (status) {
+      switch (status) {
+        case 'leasing': {
+          defaultFilter.currentLease = Not(IsNull());
+          break;
+        }
+        case 'not-leasing': {
+          defaultFilter.currentLease = IsNull();
+          break;
+        }
+        case 'rent-paid': {
+          defaultFilter.currentLease = {
+            rentStatus: RentStatus.PAID,
+          };
+          break;
+        }
+        case 'rent-unpaid': {
+          defaultFilter.currentLease = {
+            rentStatus: In([RentStatus.DUE, RentStatus.OVER_DUE]),
+          };
+          break;
+        }
+      }
+    }
+
+    const where = searchFilters.length
+      ? searchFilters.map((filter) => deepMerge(defaultFilter, filter))
+      : defaultFilter;
+
+    const tenants = await this.findAllPaginated(query, {
+      where,
+      relations: {
+        createdBy: true,
+        currentLease: {
+          property: true,
+        },
+      },
+    });
+    return tenants;
   }
 
   async addTenant(body: TenantValidationTypes['create'], authUser: User) {

@@ -50,6 +50,13 @@ export class Notification {
   admin: User;
 
   @Column({ type: 'text', nullable: true })
+  userId: string;
+
+  @ManyToOne(() => User)
+  @JoinColumn({ name: 'userId' })
+  user: User;
+
+  @Column({ type: 'text', nullable: true })
   propertyId: string;
 
   @ManyToOne(() => Property)

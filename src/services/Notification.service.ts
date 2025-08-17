@@ -40,15 +40,9 @@ export class NotificationService extends BaseService<Notification> {
   async createNotificationMail(
     trigger: NotificationTrigger & { status: NotificationStatus }
   ) {
-    const { userType, tenant, admin, notificationType, status } = trigger;
-
     const notification = await this.create({
-      userType,
-      tenant,
-      admin,
-      notificationType,
+      ...trigger,
       notificationChannel: NotificationChannel.EMAIL,
-      status,
     });
 
     return notification;
@@ -126,6 +120,26 @@ export class NotificationService extends BaseService<Notification> {
     }
 
     return defaultFilter;
+  }
+
+  async getAllNotifications(
+    pagination: PaginationRequest,
+    channel: NotificationChannel
+  ) {
+    const notifications = await this.findAllPaginated(pagination, {
+      where: {
+        notificationChannel: channel,
+      },
+      relations: {
+        admin: true,
+        property: true,
+        lease: true,
+        tenant: true,
+        user: true,
+      },
+    });
+
+    return notifications;
   }
 
   async getUserNotifications(

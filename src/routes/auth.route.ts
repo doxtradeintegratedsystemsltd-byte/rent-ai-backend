@@ -33,5 +33,38 @@ router.post(
   }
 );
 
+router.post(
+  '/forgot-password',
+  Validator(AuthValidation.forgotPassword),
+  (req, res, next) => {
+    controller.forgotPasswordMail(req, res, next);
+  }
+);
+
+router.post(
+  '/verify-password-reset-link',
+  Validator(AuthValidation.verifyPasswordResetLink),
+  (req, res, next) => {
+    controller.verifyPasswordResetLink(req, res, next);
+  }
+);
+
+router.post(
+  '/reset-password',
+  Validator(AuthValidation.resetPassword),
+  (req, res, next) => {
+    controller.resetPassword(req, res, next);
+  }
+);
+
+router.post(
+  '/change-password',
+  verifyToken,
+  Validator(AuthValidation.changePassword),
+  (req, res, next) => {
+    controller.changePassword(req, res, next);
+  }
+);
+
 const AuthRoutes = router;
 export default AuthRoutes;

@@ -11,16 +11,12 @@ export class TenantController {
 
   async getAll(req: Request, res: Response, next: NextFunction) {
     try {
-      const tenants = await this.tenantService.findAllPaginated(req.query, {
-        relations: {
-          currentLease: {
-            createdBy: true,
-            property: {
-              createdBy: true,
-            },
-          },
-        },
-      });
+      const authUser = req.user!;
+
+      const tenants = await this.tenantService.getAllTenants(
+        req.query,
+        authUser
+      );
 
       return successResponse(res, 'Returning tenants', tenants);
     } catch (error) {

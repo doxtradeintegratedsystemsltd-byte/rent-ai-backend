@@ -8,4 +8,5 @@ export interface NotificationTrigger {
   tenant?: Tenant;
   admin?: User;
   notificationType: NotificationType;
+  userId?: string;
 }

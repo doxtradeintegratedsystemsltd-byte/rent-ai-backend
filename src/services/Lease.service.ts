@@ -21,6 +21,7 @@ import { PropertyService } from './Property.service';
 import { PaystackModule } from '../modules/Paystack.module';
 import { JobNames, JobObject } from '../utils/job';
 import { CronJobModule } from '../modules/CronJob.module';
+import { TenantService } from './Tenant.service';
 
 @Service()
 export class LeaseService extends BaseService<Lease> {
@@ -38,6 +39,10 @@ export class LeaseService extends BaseService<Lease> {
 
   private get paystackModule(): PaystackModule {
     return Container.get(PaystackModule);
+  }
+
+  private get tenantService(): TenantService {
+    return Container.get(TenantService);
   }
 
   private async createLease(
@@ -353,6 +358,10 @@ export class LeaseService extends BaseService<Lease> {
       });
 
       await this.propertyService.update(lease.propertyId, {
+        currentLeaseId: lease.nextLease.id,
+      });
+
+      await this.tenantService.update(lease.tenantId, {
         currentLeaseId: lease.nextLease.id,
       });
 

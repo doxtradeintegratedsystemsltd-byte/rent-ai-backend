@@ -65,8 +65,9 @@ export class MailerModule {
 
       await sendMail(payload);
       notificationTrigger(true);
+      console.log('Email Sent to ', data.to);
     } catch (err) {
-      console.log(err);
+      console.log('Error sending email to ', data.to, err);
       notificationTrigger(false);
     }
   };
@@ -131,27 +132,32 @@ export class MailerModule {
     );
   };
 
-  static sendPasswordResetMail = async ({
-    to,
-    name,
-    otp,
-  }: {
-    to: string;
-    name: string;
-    otp: string;
-  }) => {
+  sendPasswordResetLinkMail = async (
+    {
+      to,
+      name,
+      resetLink,
+    }: {
+      to: string;
+      name: string;
+      resetLink: string;
+    },
+    notificationTrigger: NotificationFunction
+  ) => {
     try {
-      sendMail({
-        from: fromMail,
-        to,
-        subject: 'Password Reset Request',
-        html: generateEmail({
-          title: 'Password Reset',
-          content:
-            'Please complete your password reset on Totsland Portfolio with the provided OTP:',
-          additional: otp,
-        }),
-      });
+      return this.processEmail(
+        {
+          from: fromMail,
+          to,
+          subject: 'Password Reset Request',
+          html: generateEmail({
+            title: 'Password Reset',
+            content: `Hi ${name}, <br />Please complete your password reset on ${theOnlineDashboard} with the provided reset link:`,
+            additional: toLink(resetLink, 'Reset Password'),
+          }),
+        },
+        notificationTrigger
+      );
     } catch (err) {
       console.log(err);
     }

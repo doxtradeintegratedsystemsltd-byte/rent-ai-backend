@@ -3,7 +3,7 @@ import { Service } from 'typedi';
 import { successResponse } from '../utils/response';
 import { NotificationService } from '../services/Notification.service';
 import { Notification } from '../entities/Notification';
-import { NotificationStatus } from '../utils/notification';
+import { NotificationChannel, NotificationStatus } from '../utils/notification';
 
 @Service()
 export class NotificationController {
@@ -16,6 +16,18 @@ export class NotificationController {
       const notifications = await this.notificationService.getUserNotifications(
         req.query,
         authUser
+      );
+      return successResponse(res, 'Returning notifications', notifications);
+    } catch (error) {
+      return next(error);
+    }
+  }
+
+  async getMailNotifications(req: Request, res: Response, next: NextFunction) {
+    try {
+      const notifications = await this.notificationService.getAllNotifications(
+        req.query,
+        NotificationChannel.EMAIL
       );
       return successResponse(res, 'Returning notifications', notifications);
     } catch (error) {

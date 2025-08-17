@@ -8,7 +8,7 @@ export enum NotificationStatus {
 export enum NotificationType {
   // email
   ACCOUNT_CREATED = 'account_created',
-
+  PASSWORD_RESET = 'password_reset',
   // internal
   TENANT_ASSIGNED = 'tenant_assigned',
   TENANT_REMOVED = 'tenant_removed',
@@ -22,5 +22,4 @@ export enum NotificationType {
 export enum NotificationChannel {
   INTERNAL = 'internal',
   EMAIL = 'email',
-  SMS = 'sms',
 }

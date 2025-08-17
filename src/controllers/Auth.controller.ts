@@ -45,4 +45,56 @@ export class AuthController {
       return next(error);
     }
   }
+
+  async forgotPasswordMail(req: Request, res: Response, next: NextFunction) {
+    try {
+      const body = req.body as AuthValidationTypes['forgotPassword'];
+      await this.authService.forgotPasswordMail(body.email);
+
+      return successResponse(
+        res,
+        'If email exists, a password reset link has been sent'
+      );
+    } catch (error) {
+      return next(error);
+    }
+  }
+
+  async verifyPasswordResetLink(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const body = req.body as AuthValidationTypes['verifyPasswordResetLink'];
+      const user = await this.authService.verifyPasswordResetLink(body);
+
+      return successResponse(res, 'Password Reset Link Verified', user);
+    } catch (error) {
+      return next(error);
+    }
+  }
+
+  async resetPassword(req: Request, res: Response, next: NextFunction) {
+    try {
+      const body = req.body as AuthValidationTypes['resetPassword'];
+      await this.authService.resetPassword(body);
+
+      return successResponse(res, 'Password Reset Success');
+    } catch (error) {
+      return next(error);
+    }
+  }
+
+  async changePassword(req: Request, res: Response, next: NextFunction) {
+    try {
+      const authUser = req.user!;
+      const body = req.body as AuthValidationTypes['changePassword'];
+      await this.authService.changePassword(body, authUser);
+
+      return successResponse(res, 'Password Changed Success');
+    } catch (error) {
+      return next(error);
+    }
+  }
 }
