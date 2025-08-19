@@ -43,6 +43,20 @@ export class LeaseController {
     }
   }
 
+  async getAllLeasePayments(req: Request, res: Response, next: NextFunction) {
+    try {
+      const authUser = req.user!;
+      const data = await this.leaseService.getAllLeasePayments(
+        req.query,
+        authUser
+      );
+
+      return successResponse(res, 'Returning all lease payments', data);
+    } catch (error) {
+      return next(error);
+    }
+  }
+
   async checkLeasePaymentReference(
     req: Request,
     res: Response,
@@ -73,6 +87,31 @@ export class LeaseController {
         },
       });
       return successResponse(res, 'Returning lease', data);
+    } catch (error) {
+      return next(error);
+    }
+  }
+
+  async sendCustomLeaseNotification(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const body =
+        req.body as LeaseValidationTypes['sendCustomLeaseNotification'];
+      await this.leaseService.sendCustomLeaseNotification(body);
+      return successResponse(res, 'Lease notification sent');
+    } catch (error) {
+      return next(error);
+    }
+  }
+
+  async removeLeaseTenant(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { id } = req.params;
+      await this.leaseService.removeLeaseTenant(id);
+      return successResponse(res, 'Lease tenant removed');
     } catch (error) {
       return next(error);
     }

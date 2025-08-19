@@ -36,6 +36,15 @@ router.get(
 );
 
 router.get(
+  '/payments',
+  verifyToken,
+  checkRole(RoleGroups.allAdmins),
+  (req, res, next) => {
+    controller.getAllLeasePayments(req, res, next);
+  }
+);
+
+router.get(
   '/payment/callback',
   Validator(LeaseValidation.getLeasePaymentReference, 'query'),
   (req, res, next) => {
@@ -53,12 +62,31 @@ router.get(
   }
 );
 
+router.post(
+  '/send-custom-notification',
+  verifyToken,
+  checkRole(RoleGroups.allAdmins),
+  Validator(LeaseValidation.sendCustomLeaseNotification),
+  (req, res, next) => {
+    controller.sendCustomLeaseNotification(req, res, next);
+  }
+);
+
 router.get(
   '/:id',
   verifyToken,
   checkRole(RoleGroups.allAdmins),
   (req, res, next) => {
     controller.getOneLease(req, res, next);
+  }
+);
+
+router.delete(
+  '/remove-tenant/:id',
+  verifyToken,
+  checkRole(RoleGroups.allAdmins),
+  (req, res, next) => {
+    controller.removeLeaseTenant(req, res, next);
   }
 );
 

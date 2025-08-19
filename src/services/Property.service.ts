@@ -1,4 +1,4 @@
-import { Service } from 'typedi';
+import { Container, Service } from 'typedi';
 import { BaseService } from './BaseService';
 import { dataSource } from '../configs/dtSource';
 import { Property } from '../entities/Property';
@@ -8,13 +8,18 @@ import { BadRequestError } from '../configs/error';
 import { PaginationRequest } from '../types/CustomTypes';
 import { FindOptionsWhere, ILike, In, IsNull, Not } from 'typeorm';
 import { UserType } from '../utils/authUser';
-import { RentStatus } from '../utils/lease';
+import { PaymentStatus, RentStatus } from '../utils/lease';
 import { deepMerge } from '../utils/searchFilter';
+import { LeasePaymentService } from './LeasePayment.service';
 
 @Service()
 export class PropertyService extends BaseService<Property> {
   constructor() {
     super(dataSource.getRepository(Property));
+  }
+
+  private get leasePaymentService(): LeasePaymentService {
+    return Container.get(LeasePaymentService);
   }
 
   async getAllProperties(query: PaginationRequest, authUser: User) {
@@ -80,6 +85,25 @@ export class PropertyService extends BaseService<Property> {
       },
     });
     return properties;
+  }
+
+  async getPropertyPayments(id: string, tenantId?: string) {
+    await this.findById(id);
+
+    const payments = await this.leasePaymentService.findMany({
+      where: {
+        lease: {
+          propertyId: id,
+          tenantId,
+        },
+        status: PaymentStatus.COMPLETED,
+      },
+      order: {
+        paymentDate: 'DESC',
+      },
+    });
+
+    return payments;
   }
 
   createProperty(body: PropertyValidationTypes['create'], authUser: User) {

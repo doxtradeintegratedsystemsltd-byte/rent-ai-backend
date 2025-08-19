@@ -163,6 +163,98 @@ export class MailerModule {
     }
   };
 
+  sendLeasePaymentReminderMail = async (
+    {
+      to,
+      name,
+      leaseStatus,
+    }: {
+      to: string;
+      name: string;
+      leaseStatus: string;
+    },
+    notificationTrigger: NotificationFunction
+  ) => {
+    try {
+      return this.processEmail(
+        {
+          from: fromMail,
+          to,
+          subject: 'Lease Payment Reminder',
+          html: generateEmail({
+            title: 'Lease Payment Reminder',
+            content: `Hi ${name}, <br />This is a reminder that your lease payment status is ${leaseStatus}`,
+            additional: `You can make payment on ${theOnlineDashboard}`,
+          }),
+        },
+        notificationTrigger
+      );
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  sendLeaseTenantRemovedMail = async (
+    {
+      to,
+      name,
+      propertyName,
+    }: {
+      to: string;
+      name: string;
+      propertyName: string;
+    },
+    notificationTrigger: NotificationFunction
+  ) => {
+    try {
+      return this.processEmail(
+        {
+          from: fromMail,
+          to,
+          subject: 'Lease Cancelled',
+          html: generateEmail({
+            title: 'Your Lease has been cancelled',
+            content: `Hi ${name}, <br />Your lease with ${propertyName} has been cancelled.`,
+            additional: `You will no longer need to access the online portal`,
+          }),
+        },
+        notificationTrigger
+      );
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  sendLeaseNotificationMail = async (
+    {
+      to,
+      notificationTitle,
+      notificationContent,
+    }: {
+      to: string;
+      notificationTitle: string;
+      notificationContent: string;
+    },
+    notificationTrigger: NotificationFunction
+  ) => {
+    try {
+      return this.processEmail(
+        {
+          from: fromMail,
+          to,
+          subject: 'New Notification',
+          html: generateEmail({
+            title: notificationTitle,
+            content: notificationContent,
+          }),
+        },
+        notificationTrigger
+      );
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
   static sendAccountDeletedMail = async ({ to }: Record<string, string>) => {
     try {
       sendMail({

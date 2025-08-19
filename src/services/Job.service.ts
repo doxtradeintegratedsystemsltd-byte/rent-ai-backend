@@ -12,11 +12,18 @@ import {
 } from '../utils/lease';
 import { NotificationService } from './Notification.service';
 import { BadRequestError } from '../configs/error';
+import { MailerModule } from '../modules/Mailer.module';
+import { NotificationType } from '../utils/notification';
+import { UserType } from '../utils/authUser';
 
 @Service()
 export class JobService extends BaseService<Job> {
   constructor() {
     super(dataSource.getRepository(Job));
+  }
+
+  private get mailerModule(): MailerModule {
+    return Container.get(MailerModule);
   }
 
   private get leaseService(): LeaseService {
@@ -50,7 +57,9 @@ export class JobService extends BaseService<Job> {
       relations: {
         payment: true,
         nextLease: true,
-        tenant: true,
+        tenant: {
+          user: true,
+        },
         property: true,
       },
     });
@@ -85,6 +94,27 @@ export class JobService extends BaseService<Job> {
       lease.property,
       lease,
       rentStatus
+    );
+
+    const leaseStatus =
+      rentStatus === RentStatus.NEAR_DUE
+        ? 'near due'
+        : rentStatus === RentStatus.DUE
+        ? 'due'
+        : 'overdue';
+
+    await this.mailerModule.sendLeasePaymentReminderMail(
+      {
+        to: lease.tenant.email,
+        name: lease.tenant.firstName,
+        leaseStatus,
+      },
+      this.notificationService.createNotificationMailTrigger({
+        tenant: lease.tenant,
+        notificationType: NotificationType.LEASE_PAYMENT_REMINDER,
+        userType: UserType.TENANT,
+        userId: lease.tenant.user.id,
+      })
     );
   }
 }

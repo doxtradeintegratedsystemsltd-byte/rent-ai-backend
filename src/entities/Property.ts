@@ -48,7 +48,7 @@ export class Property {
   createdBy: User;
 
   @Column({ type: 'text', nullable: true })
-  currentLeaseId: string;
+  currentLeaseId: string | null;
 
   @OneToOne(() => Lease)
   @JoinColumn({ name: 'currentLeaseId' })

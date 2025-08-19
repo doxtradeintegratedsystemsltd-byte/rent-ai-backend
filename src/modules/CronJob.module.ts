@@ -91,6 +91,9 @@ export class CronJobModule {
             scheduledAt: LessThanOrEqual(now),
           },
         ],
+        order: {
+          scheduledAt: 'ASC',
+        },
       });
 
       for (const job of jobs) {

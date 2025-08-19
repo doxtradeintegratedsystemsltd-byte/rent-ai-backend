@@ -56,7 +56,15 @@ export class PropertyController {
         },
       });
 
-      return successResponse(res, 'Property found', property);
+      const payments = await this.propertyService.getPropertyPayments(
+        id,
+        property.currentLease?.tenantId
+      );
+
+      return successResponse(res, 'Property found', {
+        ...property,
+        payments,
+      });
     } catch (error) {
       return next(error);
     }

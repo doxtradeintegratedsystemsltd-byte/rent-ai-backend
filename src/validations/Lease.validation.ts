@@ -15,6 +15,11 @@ const LeaseValidation = {
   getLeasePaymentReference: z.object({
     reference: z.string(),
   }),
+  sendCustomLeaseNotification: z.object({
+    leaseId: z.string(),
+    notificationTitle: z.string(),
+    notificationContent: z.string(),
+  }),
 };
 
 export type LeaseValidationTypes = {

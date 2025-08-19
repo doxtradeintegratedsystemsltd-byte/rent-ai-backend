@@ -22,6 +22,10 @@ import { PaystackModule } from '../modules/Paystack.module';
 import { JobNames, JobObject } from '../utils/job';
 import { CronJobModule } from '../modules/CronJob.module';
 import { TenantService } from './Tenant.service';
+import { MailerModule } from '../modules/Mailer.module';
+import { NotificationService } from './Notification.service';
+import { NotificationType } from '../utils/notification';
+import { PaginationRequest } from '../types/CustomTypes';
 
 @Service()
 export class LeaseService extends BaseService<Lease> {
@@ -43,6 +47,14 @@ export class LeaseService extends BaseService<Lease> {
 
   private get tenantService(): TenantService {
     return Container.get(TenantService);
+  }
+
+  private get mailerModule(): MailerModule {
+    return Container.get(MailerModule);
+  }
+
+  private get notificationService(): NotificationService {
+    return Container.get(NotificationService);
   }
 
   private async createLease(
@@ -218,6 +230,10 @@ export class LeaseService extends BaseService<Lease> {
 
       return paymentLink;
     }
+  }
+
+  async getAllLeasePayments(query: PaginationRequest, authUser: User) {
+    return this.leasePaymentService.getAllLeasePayments(query, authUser);
   }
 
   async getTenantLease(tenantId: string) {
@@ -430,6 +446,78 @@ export class LeaseService extends BaseService<Lease> {
         timestamp: new Date(lease.endDate),
       },
       dueObject
+    );
+  }
+
+  async sendCustomLeaseNotification(
+    body: LeaseValidationTypes['sendCustomLeaseNotification']
+  ) {
+    const lease = await this.findById(body.leaseId, {
+      relations: {
+        tenant: {
+          user: true,
+        },
+        property: true,
+      },
+    });
+
+    if (lease.property.currentLeaseId !== lease.id) {
+      throw new BadRequestError('Lease is not the current lease');
+    }
+
+    await this.mailerModule.sendLeaseNotificationMail(
+      {
+        to: lease.tenant.user.email,
+        notificationTitle: body.notificationTitle,
+        notificationContent: body.notificationContent,
+      },
+      this.notificationService.createNotificationMailTrigger({
+        lease,
+        tenant: lease.tenant,
+        property: lease.property,
+        userType: UserType.TENANT,
+        notificationType: NotificationType.CUSTOM_LEASE_NOTIFICATION,
+      })
+    );
+  }
+
+  async removeLeaseTenant(leaseId: string) {
+    const lease = await this.findById(leaseId, {
+      relations: {
+        tenant: {
+          user: true,
+        },
+        property: true,
+      },
+    });
+
+    if (lease.property.currentLeaseId !== lease.id) {
+      throw new BadRequestError('Lease is not the current lease');
+    }
+
+    await this.propertyService.update(lease.propertyId, {
+      currentLeaseId: null,
+    });
+
+    await this.tenantService.update(lease.tenantId, {
+      currentLeaseId: null,
+    });
+
+    await this.update(lease.id, {
+      leaseStatus: LeaseStatus.INACTIVE,
+    });
+
+    await this.mailerModule.sendLeaseTenantRemovedMail(
+      {
+        to: lease.tenant.user.email,
+        name: `${lease.tenant.firstName} ${lease.tenant.lastName}`,
+        propertyName: lease.property.propertyName,
+      },
+      this.notificationService.createNotificationMailTrigger({
+        notificationType: NotificationType.LEASE_TENANT_REMOVED,
+        userType: UserType.TENANT,
+        tenant: lease.tenant,
+      })
     );
   }
 }

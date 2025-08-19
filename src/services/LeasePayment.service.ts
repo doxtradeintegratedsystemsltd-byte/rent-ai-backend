@@ -7,7 +7,10 @@ import { Lease } from '../entities/Lease';
 import { PaymentStatus, PaymentType } from '../utils/lease';
 import { PaystackModule } from '../modules/Paystack.module';
 import envConfig from '../configs/envConfig';
-import { Between, FindOptionsWhere } from 'typeorm';
+import { Between, FindOptionsWhere, ILike } from 'typeorm';
+import { PaginationRequest } from '../types/CustomTypes';
+import { UserType } from '../utils/authUser';
+import { deepMerge } from '../utils/searchFilter';
 
 @Service()
 export class LeasePaymentService extends BaseService<LeasePayment> {
@@ -99,5 +102,60 @@ export class LeasePaymentService extends BaseService<LeasePayment> {
     });
 
     return payments.reduce((acc, payment) => acc + Number(payment.amount), 0);
+  }
+
+  async getAllLeasePayments(query: PaginationRequest, authUser: User) {
+    const { search, status, adminId } = query;
+
+    const defaultFilter: FindOptionsWhere<LeasePayment> = {
+      status: PaymentStatus.COMPLETED,
+    };
+    const searchFilters: FindOptionsWhere<LeasePayment>[] = [];
+
+    if (authUser.userType === UserType.ADMIN) {
+      defaultFilter.createdById = authUser.id;
+    } else {
+      if (adminId) {
+        defaultFilter.createdById = adminId;
+      }
+    }
+
+    if (search) {
+      const searchItem = ILike(`%${search}%`);
+      searchFilters.push(
+        { reference: searchItem },
+        { type: searchItem as any }
+      );
+    }
+
+    if (status) {
+      switch (status) {
+        case 'manual': {
+          defaultFilter.type = PaymentType.MANUAL;
+          break;
+        }
+        case 'paystack': {
+          defaultFilter.type = PaymentType.PAYSTACK;
+          break;
+        }
+      }
+    }
+
+    const where = searchFilters.length
+      ? searchFilters.map((filter) => deepMerge(defaultFilter, filter))
+      : defaultFilter;
+
+    const data = await this.findAllPaginated(query, {
+      where,
+      relations: {
+        createdBy: true,
+        lease: {
+          property: true,
+          tenant: true,
+        },
+      },
+    });
+
+    return data;
   }
 }
