@@ -27,4 +27,6 @@ const dbConfig: DataSourceOptions = {
   name: 'default',
 };
 
+console.log(dbConfig);
+
 export default dbConfig;
