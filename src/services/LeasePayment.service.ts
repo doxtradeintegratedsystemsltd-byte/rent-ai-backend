@@ -113,10 +113,14 @@ export class LeasePaymentService extends BaseService<LeasePayment> {
     const searchFilters: FindOptionsWhere<LeasePayment>[] = [];
 
     if (authUser.userType === UserType.ADMIN) {
-      defaultFilter.createdById = authUser.id;
+      defaultFilter.lease = {
+        createdById: authUser.id,
+      };
     } else {
       if (adminId) {
-        defaultFilter.createdById = adminId;
+        defaultFilter.lease = {
+          createdById: adminId,
+        };
       }
     }
 
