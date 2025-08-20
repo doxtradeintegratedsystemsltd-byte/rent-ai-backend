@@ -11,7 +11,7 @@ import {
 } from '../utils/analytics';
 import { TenantService } from './Tenant.service';
 import { LeasePaymentService } from './LeasePayment.service';
-import { PaymentStatus } from '../utils/lease';
+import { PaymentStatus, RentStatus } from '../utils/lease';
 import { PaginationRequest } from '../types/CustomTypes';
 import { getPagnation } from '../utils/pagination';
 import { Property } from '../entities/Property';
@@ -21,6 +21,7 @@ import { LeasePayment } from '../entities/LeasePayment';
 import { UserValidationTypes } from '../validations/User.validation';
 import { AuthService } from './Auth.service';
 import { BadRequestError } from '../configs/error';
+import { In } from 'typeorm';
 
 @Service()
 export class UserService extends BaseService<User> {
@@ -172,6 +173,17 @@ export class UserService extends BaseService<User> {
     const propertyFilter = adminId ? { createdById: adminId } : null;
     const tenantFilter = adminId ? { createdById: adminId } : null;
 
+    const duePropertiesFilter = {
+      createdById: undefined,
+      currentLease: {
+        rentStatus: In([RentStatus.DUE, RentStatus.OVER_DUE]),
+      },
+    };
+
+    if (adminId) {
+      duePropertiesFilter.createdById = adminId as any;
+    }
+
     const [
       allProperties,
       currProperties,
@@ -183,6 +195,7 @@ export class UserService extends BaseService<User> {
       currAdmins,
       prevAdmins,
       payments,
+      dueProperties,
     ] = await Promise.all([
       getEntityCounts(this.propertyService, propertyFilter),
       getEntityCounts(this.propertyService, propertyFilter, startDate, endDate),
@@ -212,6 +225,7 @@ export class UserService extends BaseService<User> {
         lastPeriod,
         adminId
       ),
+      getEntityCounts(this.propertyService, duePropertiesFilter),
     ]);
 
     const response = {
@@ -237,6 +251,7 @@ export class UserService extends BaseService<User> {
         current: payments.current,
         previous: payments.previous,
       },
+      dueProperties,
     };
 
     return response;

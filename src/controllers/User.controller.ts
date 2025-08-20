@@ -94,9 +94,13 @@ export class UserController {
       const { period } =
         req.query as UserValidationTypes['getDashboardAnalytics'];
 
+      const adminId =
+        user.userType !== UserType.SUPER_ADMIN ? user.id : undefined;
+
       const data = await this.userService.getDashboardData(
         user.userType,
-        period
+        period,
+        adminId
       );
 
       return successResponse(res, 'Dashboard data', data);

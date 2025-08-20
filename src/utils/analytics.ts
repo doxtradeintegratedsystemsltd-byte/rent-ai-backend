@@ -224,15 +224,9 @@ export const getEntityCounts = async <T extends ObjectLiteral>(
     };
   }
 
-  const data = await service.findAllPaginated(
-    {
-      page: 0,
-      size: 10,
-    },
-    {
-      where: Object.keys(where).length > 0 ? where : undefined,
-    }
-  );
+  const count = await service.getRepository().count({
+    where: Object.keys(where).length > 0 ? where : undefined,
+  });
 
-  return data.totalItems;
+  return count;
 };
