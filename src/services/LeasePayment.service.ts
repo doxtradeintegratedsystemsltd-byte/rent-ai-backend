@@ -128,7 +128,32 @@ export class LeasePaymentService extends BaseService<LeasePayment> {
       const searchItem = ILike(`%${search}%`);
       searchFilters.push(
         { reference: searchItem },
-        { type: searchItem as any }
+        { type: searchItem as any },
+        {
+          lease: {
+            tenant: { firstName: search },
+          },
+        },
+        {
+          lease: {
+            tenant: { lastName: search },
+          },
+        },
+        {
+          lease: {
+            tenant: { email: search },
+          },
+        },
+        {
+          lease: {
+            tenant: { phoneNumber: search },
+          },
+        },
+        { lease: { property: { propertyName: search } } },
+        { lease: { createdBy: { firstName: search } } },
+        { lease: { createdBy: { lastName: search } } },
+        { lease: { createdBy: { email: search } } },
+        { lease: { createdBy: { phoneNumber: search } } }
       );
     }
 
