@@ -107,9 +107,16 @@ export class PropertyService extends BaseService<Property> {
   }
 
   createProperty(body: PropertyValidationTypes['create'], authUser: User) {
+    if (authUser.userType === UserType.SUPER_ADMIN && !body.adminId) {
+      throw new BadRequestError('Admin ID is required');
+    }
+
+    const createdById =
+      authUser.userType === UserType.SUPER_ADMIN ? body.adminId : authUser.id;
+
     const property = this.create({
       ...body,
-      createdById: authUser.id,
+      createdById,
     });
 
     return property;

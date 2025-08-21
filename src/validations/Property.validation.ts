@@ -9,6 +9,7 @@ const PropertyValidation = {
     propertyImage: z.string().optional(),
     leaseYears: z.number().positive(),
     rentAmount: z.number().positive(),
+    adminId: z.string().optional(),
   }),
   update: z.object({
     propertyName: z.string().optional(),
