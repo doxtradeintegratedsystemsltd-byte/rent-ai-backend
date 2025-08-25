@@ -100,6 +100,7 @@ export class PropertyService extends BaseService<Property> {
       },
       order: {
         paymentDate: 'DESC',
+        createdAt: 'DESC',
       },
     });
 

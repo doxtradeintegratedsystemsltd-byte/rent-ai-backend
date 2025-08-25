@@ -257,7 +257,19 @@ export class LeaseService extends BaseService<Lease> {
       },
     });
 
-    return property;
+    if (property) {
+      const payments = await this.propertyService.getPropertyPayments(
+        property.id,
+        property.currentLease?.tenantId
+      );
+
+      return {
+        ...property,
+        payments,
+      };
+    }
+
+    return null;
   }
 
   async checkLeasePaymentReference(reference: string) {
