@@ -155,6 +155,7 @@ export class TenantService extends BaseService<Tenant> {
     const updatedProperty = await this.propertyService.update(property.id, {
       currentLease: lease,
     });
+
     const updatedTenant = await this.update(tenant.id, {
       currentLease: lease,
     });
