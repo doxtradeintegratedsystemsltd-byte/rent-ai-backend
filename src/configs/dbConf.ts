@@ -24,7 +24,15 @@ const dbConfig: DataSourceOptions = {
   entities: [__dirname + '/../entities/*.+(ts|js)'],
   synchronize: true,
   logging: false,
+  ssl: {
+    rejectUnauthorized: false,
+  },
   name: 'default',
+  // uuid-generate-v4 not found fix
+  extra: {
+    // Ensure UUID functions are accessible
+    options: `-c search_path="$user",public,extensions`,
+  },
 };
 
 export default dbConfig;
