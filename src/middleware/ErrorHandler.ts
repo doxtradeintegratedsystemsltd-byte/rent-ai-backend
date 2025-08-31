@@ -22,11 +22,10 @@ const ErrorHandlerMiddleware: ErrorRequestHandler = (
   if (!isProduction) {
     errorMessage = error;
   }
+  console.error(error.stack);
 
   // Log all 500 errors - regardless of environment
   if (statusCode === 500) {
-    console.error(error.stack);
-
     // Also use our comprehensive error logging utility
     logError(error, {
       type: 'ServerError',

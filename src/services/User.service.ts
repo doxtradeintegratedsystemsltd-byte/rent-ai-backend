@@ -279,10 +279,14 @@ export class UserService extends BaseService<User> {
     body: UserValidationTypes['updateProfile']
   ) {
     await this.findById(userId);
-    const user = await this.update(userId, body);
+    const user = await this.update(userId, body, {
+      relations: {
+        auth: true,
+      },
+    });
 
     if (body.email) {
-      await this.authService.update(userId, { email: body.email });
+      await this.authService.update(user.auth.id, { email: body.email });
     }
     return user;
   }

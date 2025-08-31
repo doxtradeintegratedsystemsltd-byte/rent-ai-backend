@@ -76,9 +76,13 @@ export class BaseService<T extends ObjectLiteral> {
     return this.repository.findOneBy(options);
   }
 
-  async update(id: string, data: QueryDeepPartialEntity<T>) {
+  async update(
+    id: string,
+    data: QueryDeepPartialEntity<T>,
+    options?: CustomFindOneOptions<T>
+  ) {
     await this.repository.update(id, data);
-    return this.findById(id);
+    return this.findById(id, options);
   }
 
   async delete(id: string) {
