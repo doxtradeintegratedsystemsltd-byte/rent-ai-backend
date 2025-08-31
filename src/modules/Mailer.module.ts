@@ -92,7 +92,7 @@ export class MailerModule {
         subject: 'Welcome to the Rent Platform',
         html: generateEmail({
           title: 'Sign in and access your account!',
-          content: `Hi ${name}, <br />We are delighted to inform you that an account has been created for you to access ${theOnlineDashboard}. Through this dashboard, you can view the details of your current lease with use, as well as renew your lease as well as see additional details`,
+          content: `Hi ${name}, <br />We are delighted to inform you that an account has been created for you to access ${theOnlineDashboard}. Through this dashboard, you can view the details of your current lease with use, as well as renew your lease and see additional details`,
           additional: `Website: ${toLink(WEBSITE_URL)} 
           <br />Email: ${email}
           <br />Password: ${password}`,

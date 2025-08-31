@@ -28,7 +28,10 @@ export const getAnalysisPeriods = (period?: AnalysisPeriod) => {
 
   // Calculate the start of this week (Monday)
   const thisWeek = new Date(date);
-  thisWeek.setDate(date.getDate() - date.getDay() + 1);
+  const dayOfWeek = date.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+  const daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // Convert to Monday-based (0 = Monday, 6 = Sunday)
+  thisWeek.setDate(date.getDate() - daysToMonday);
+  thisWeek.setHours(0, 0, 0, 0);
 
   // Calculate the start of last week (Monday)
   const lastWeek = new Date(thisWeek);
@@ -69,6 +72,14 @@ export const getAnalysisPeriods = (period?: AnalysisPeriod) => {
 
   const oldestDate = new Date(0);
 
+  const thisWeekEnd = new Date(thisWeek);
+  thisWeekEnd.setDate(thisWeek.getDate() + 6); // Set to the end of the week (Sunday)
+  thisWeekEnd.setHours(23, 59, 59, 999);
+
+  const lastWeekEnd = new Date(lastWeek);
+  lastWeekEnd.setDate(lastWeek.getDate() + 6); // Set to the end of the week (Sunday)
+  lastWeekEnd.setHours(23, 59, 59, 999);
+
   const currentPeriod = {
     lastPeriod: lastWeek,
     startDate: thisWeek,
@@ -92,7 +103,7 @@ export const getAnalysisPeriods = (period?: AnalysisPeriod) => {
       }
       case AnalysisPeriod.thisWeek: {
         currentPeriod.startDate = thisWeek;
-        currentPeriod.endDate = new Date(date);
+        currentPeriod.endDate = thisWeekEnd;
         currentPeriod.lastPeriod = lastWeek;
         break;
       }
@@ -100,7 +111,7 @@ export const getAnalysisPeriods = (period?: AnalysisPeriod) => {
         const lastPeriod = new Date(lastWeek);
         lastPeriod.setDate(lastWeek.getDate() - 7);
         currentPeriod.startDate = lastWeek;
-        currentPeriod.endDate = thisWeek;
+        currentPeriod.endDate = lastWeekEnd;
         currentPeriod.lastPeriod = lastPeriod;
         break;
       }

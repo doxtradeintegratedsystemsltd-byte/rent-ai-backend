@@ -170,6 +170,8 @@ export class UserService extends BaseService<User> {
       currentPeriod: { lastPeriod, startDate, endDate },
     } = getAnalysisPeriods(peroid);
 
+    console.log({ lastPeriod, startDate, endDate });
+
     const propertyFilter = adminId ? { createdById: adminId } : null;
     const tenantFilter = adminId ? { createdById: adminId } : null;
 
