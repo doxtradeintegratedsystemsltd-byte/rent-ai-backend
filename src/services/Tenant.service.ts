@@ -14,7 +14,14 @@ import { NotificationStatus, NotificationType } from '../utils/notification';
 import { NotificationService } from './Notification.service';
 import { MailerModule } from '../modules/Mailer.module';
 import { PaginationRequest } from '../types/CustomTypes';
-import { FindOptionsWhere, ILike, In, IsNull, Not } from 'typeorm';
+import {
+  FindOptionsOrder,
+  FindOptionsWhere,
+  ILike,
+  In,
+  IsNull,
+  Not,
+} from 'typeorm';
 import { RentStatus } from '../utils/lease';
 import { deepMerge } from '../utils/searchFilter';
 
@@ -49,7 +56,7 @@ export class TenantService extends BaseService<Tenant> {
   }
 
   async getAllTenants(query: PaginationRequest, authUser: User) {
-    const { search, status, adminId } = query;
+    const { search, status, adminId, sort, sortOrder } = query;
 
     const defaultFilter: FindOptionsWhere<Tenant> = {};
     const searchFilters: FindOptionsWhere<Tenant>[] = [];
@@ -97,12 +104,63 @@ export class TenantService extends BaseService<Tenant> {
       }
     }
 
+    let order: FindOptionsOrder<Tenant> = {
+      createdAt: sortOrder || 'DESC',
+    };
+
+    switch (sort) {
+      case 'name':
+        order = {
+          firstName: sortOrder,
+        };
+        break;
+      case 'property':
+        order = {
+          currentLease: {
+            property: {
+              propertyName: sortOrder,
+            },
+          },
+        };
+        break;
+      case 'location':
+        order = {
+          currentLease: {
+            property: {
+              propertyState: sortOrder,
+            },
+          },
+        };
+        break;
+      case 'admin':
+        order = {
+          currentLease: {
+            createdBy: {
+              firstName: sortOrder,
+            },
+          },
+        };
+        break;
+      case 'rent-status':
+        order = {
+          currentLease: {
+            rentStatus: sortOrder,
+          },
+        };
+        break;
+      default:
+        order = {
+          [sort || 'createdAt']: sortOrder,
+        };
+    }
+
     const where = searchFilters.length
       ? searchFilters.map((filter) => deepMerge(defaultFilter, filter))
       : defaultFilter;
 
     const tenants = await this.findAllPaginated(query, {
       where,
+      order,
       relations: {
         createdBy: true,
         currentLease: {
