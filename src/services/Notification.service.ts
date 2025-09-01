@@ -198,7 +198,6 @@ export class NotificationService extends BaseService<Notification> {
       {
         ...defaultFilter,
         seen: false,
-        status: NotificationStatus.COMPLETED,
       },
       {
         seen: true,
