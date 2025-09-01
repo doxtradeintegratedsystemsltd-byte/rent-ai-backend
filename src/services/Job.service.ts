@@ -68,8 +68,10 @@ export class JobService extends BaseService<Job> {
       throw new BadRequestError('Lease is currently not active');
     }
 
-    if (lease.nextLease && lease.nextLease.rentStatus === RentStatus.PAID) {
-      throw new BadRequestError('Lease rent is already paid');
+    if (job.type !== 'due') {
+      if (lease.nextLease && lease.nextLease.rentStatus === RentStatus.PAID) {
+        throw new BadRequestError('Lease rent is already paid');
+      }
     }
 
     let rentStatus;
@@ -83,6 +85,10 @@ export class JobService extends BaseService<Job> {
       throw new BadRequestError(
         `Invalid job type for rent status: ${job.type}`
       );
+    }
+
+    if (job.type === 'due') {
+      return this.leaseService.updateCurrentLeaseAfterEndDate(lease.id);
     }
 
     await this.leaseService.update(lease.id, {
