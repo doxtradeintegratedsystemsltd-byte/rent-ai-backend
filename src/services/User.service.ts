@@ -128,7 +128,17 @@ export class UserService extends BaseService<User> {
     };
 
     const sortKey = sortMap[sort as keyof typeof sortMap] || 'user.createdAt';
-    qb.orderBy(sortKey, order);
+
+    // For computed columns (properties, tenants, rentProcessed), we need to use the full subquery
+    if (sort === 'properties') {
+      qb.orderBy(propertiesSub, order);
+    } else if (sort === 'tenants') {
+      qb.orderBy(tenantsSub, order);
+    } else if (sort === 'rentProcessed') {
+      qb.orderBy(rentProcessedSub, order);
+    } else {
+      qb.orderBy(sortKey, order);
+    }
 
     // pagination
     qb.skip(offset).take(limit);
@@ -292,11 +302,24 @@ export class UserService extends BaseService<User> {
   }
 
   async deleteAdmin(id: string) {
-    const user = await this.findById(id);
+    const user = await this.findById(id, {
+      relations: {
+        auth: true,
+      },
+    });
+
     if (user.userType !== UserType.ADMIN) {
       throw new BadRequestError('User is not an admin');
     }
 
-    await this.softDelete(id);
+    await this.update(id, {
+      deletedAt: new Date(),
+      email: user.email + '_deleted_' + new Date().toISOString(),
+    });
+
+    await this.authService.update(user.auth.id, {
+      deletedAt: new Date(),
+      email: user.email + '_deleted_' + new Date().toISOString(),
+    });
   }
 }
