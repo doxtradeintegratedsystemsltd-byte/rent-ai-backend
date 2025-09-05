@@ -311,29 +311,16 @@ export class UserService extends BaseService<User> {
     if (user.userType !== UserType.ADMIN) {
       throw new BadRequestError('User is not an admin');
     }
+    const email = user.email + '_deleted_' + new Date().toISOString();
 
-    const deleted = await this.update(
-      id,
-      {
-        deletedAt: new Date(),
-        email: user.email + '_deleted_' + new Date().toISOString(),
-        auth: {
-          deletedAt: new Date(),
-          email: user.email + '_deleted_' + new Date().toISOString(),
-        },
-      },
-      {
-        relations: {
-          auth: true,
-        },
-      }
-    );
+    await this.getRepository().update(id, {
+      deletedAt: new Date(),
+      email,
+    });
 
-    console.log(deleted);
-
-    // await this.authService.update(user.auth.id, {
-    //   deletedAt: new Date(),
-    //   email: user.email + '_deleted_' + new Date().toISOString(),
-    // });
+    await this.authService.getRepository().update(user.auth.id, {
+      deletedAt: new Date(),
+      email,
+    });
   }
 }
