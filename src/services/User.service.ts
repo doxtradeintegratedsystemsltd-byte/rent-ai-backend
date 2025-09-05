@@ -312,14 +312,28 @@ export class UserService extends BaseService<User> {
       throw new BadRequestError('User is not an admin');
     }
 
-    await this.update(id, {
-      deletedAt: new Date(),
-      email: user.email + '_deleted_' + new Date().toISOString(),
-    });
+    const deleted = await this.update(
+      id,
+      {
+        deletedAt: new Date(),
+        email: user.email + '_deleted_' + new Date().toISOString(),
+        auth: {
+          deletedAt: new Date(),
+          email: user.email + '_deleted_' + new Date().toISOString(),
+        },
+      },
+      {
+        relations: {
+          auth: true,
+        },
+      }
+    );
 
-    await this.authService.update(user.auth.id, {
-      deletedAt: new Date(),
-      email: user.email + '_deleted_' + new Date().toISOString(),
-    });
+    console.log(deleted);
+
+    // await this.authService.update(user.auth.id, {
+    //   deletedAt: new Date(),
+    //   email: user.email + '_deleted_' + new Date().toISOString(),
+    // });
   }
 }
