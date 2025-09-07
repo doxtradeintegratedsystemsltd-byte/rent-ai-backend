@@ -115,6 +115,7 @@ export class NotificationService extends BaseService<Notification> {
 
     if (authUser.userType === UserType.TENANT) {
       defaultFilter.tenantId = authUser.tenantId;
+      defaultFilter.userType = UserType.TENANT;
     } else {
       defaultFilter.userType = UserType.ADMIN;
     }
