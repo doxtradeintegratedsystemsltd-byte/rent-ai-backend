@@ -90,7 +90,13 @@ export class UserService extends BaseService<User> {
       .subQuery()
       .select('COUNT(tenant.id)')
       .from(Tenant, 'tenant')
-      .where('tenant.createdById = user.id')
+      .innerJoin(
+        Lease,
+        'currentLease',
+        'currentLease.id = tenant.currentLeaseId'
+      )
+      .innerJoin(Property, 'property', 'property.id = currentLease.propertyId')
+      .where('property.createdById = user.id')
       .getQuery();
 
     const rentProcessedSub = qb
