@@ -203,10 +203,15 @@ export class TenantService extends BaseService<Tenant> {
       tenant = await this.updateTenant(existingTenant, body);
     }
 
+    let user = authUser;
+    if (authUser.userType === UserType.SUPER_ADMIN) {
+      user = await this.userService.findById(property.createdById);
+    }
+
     const lease = await this.leaseService.createNewLease(
       property,
       tenant,
-      authUser,
+      user,
       body
     );
 
