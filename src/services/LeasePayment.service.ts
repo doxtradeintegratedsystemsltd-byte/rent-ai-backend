@@ -130,29 +130,29 @@ export class LeasePaymentService extends BaseService<LeasePayment> {
         { reference: searchItem },
         {
           lease: {
-            tenant: { firstName: search },
+            tenant: { firstName: searchItem },
           },
         },
         {
           lease: {
-            tenant: { lastName: search },
+            tenant: { lastName: searchItem },
           },
         },
         {
           lease: {
-            tenant: { email: search },
+            tenant: { email: searchItem },
           },
         },
         {
           lease: {
-            tenant: { phoneNumber: search },
+            tenant: { phoneNumber: searchItem },
           },
         },
-        { lease: { property: { propertyName: search } } },
-        { lease: { createdBy: { firstName: search } } },
-        { lease: { createdBy: { lastName: search } } },
-        { lease: { createdBy: { email: search } } },
-        { lease: { createdBy: { phoneNumber: search } } }
+        { lease: { property: { propertyName: searchItem } } },
+        { lease: { createdBy: { firstName: searchItem } } },
+        { lease: { createdBy: { lastName: searchItem } } },
+        { lease: { createdBy: { email: searchItem } } },
+        { lease: { createdBy: { phoneNumber: searchItem } } }
       );
     }
 
