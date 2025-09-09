@@ -242,7 +242,6 @@ export class UserService extends BaseService<User> {
         lastPeriod,
         startDate
       ),
-
       this.leasePaymentService.getLeasePaymentAnalytics(
         startDate,
         endDate,

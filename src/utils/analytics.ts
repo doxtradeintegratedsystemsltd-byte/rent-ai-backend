@@ -39,15 +39,18 @@ export const getAnalysisPeriods = (period?: AnalysisPeriod) => {
 
   const thisMonth = new Date();
   thisMonth.setMonth(date.getMonth(), 1);
+  thisMonth.setHours(0, 0, 0, 0);
 
   const lastMonth = new Date();
   lastMonth.setMonth(date.getMonth() - 1, 1);
+  lastMonth.setHours(0, 0, 0, 0);
 
   function getQuarterStart(month: number) {
     const quarterStartMonth = Math.floor(month / 3) * 3;
     const startOfQuarter = new Date(
       Date.UTC(date.getFullYear(), quarterStartMonth, 1)
     );
+    startOfQuarter.setHours(0, 0, 0, 0);
     return startOfQuarter;
   }
 
@@ -55,20 +58,25 @@ export const getAnalysisPeriods = (period?: AnalysisPeriod) => {
 
   const lastQuarter = new Date(thisQuarter);
   lastQuarter.setUTCMonth(thisQuarter.getUTCMonth() - 3);
+  lastQuarter.setHours(0, 0, 0, 0);
 
   const thisYear = new Date();
   thisYear.setMonth(0, 1);
+  thisYear.setHours(0, 0, 0, 0);
 
   const lastYear = new Date();
   lastYear.setFullYear(date.getFullYear() - 1, 0, 1);
+  lastYear.setHours(0, 0, 0, 0);
 
   // Calculate the start of the last 30 days
   const last30Days = new Date(date);
   last30Days.setDate(date.getDate() - 30);
+  last30Days.setHours(0, 0, 0, 0);
 
   // Calculate the start of the last 365 days
   const last365Days = new Date(date);
   last365Days.setDate(date.getDate() - 365);
+  last365Days.setHours(0, 0, 0, 0);
 
   const oldestDate = new Date(0);
 
@@ -83,7 +91,7 @@ export const getAnalysisPeriods = (period?: AnalysisPeriod) => {
   const currentPeriod = {
     lastPeriod: lastWeek,
     startDate: thisWeek,
-    endDate: date,
+    endDate: new Date(date.getTime() + 24 * 60 * 60 * 1000 - 1), // End of today
   };
 
   if (period) {
@@ -94,6 +102,7 @@ export const getAnalysisPeriods = (period?: AnalysisPeriod) => {
         const endDate = new Date();
         const yesterday = new Date();
         yesterday.setDate(date.getDate() - 1);
+        yesterday.setHours(0, 0, 0, 0);
         endDate.setHours(23, 59, 59, 999);
 
         currentPeriod.startDate = startDate;
@@ -116,66 +125,107 @@ export const getAnalysisPeriods = (period?: AnalysisPeriod) => {
         break;
       }
       case AnalysisPeriod.thisMonth: {
+        const endOfMonth = new Date(date);
+        endOfMonth.setMonth(date.getMonth() + 1, 0); // Last day of current month
+        endOfMonth.setHours(23, 59, 59, 999);
+
         currentPeriod.startDate = thisMonth;
-        currentPeriod.endDate = date;
+        currentPeriod.endDate = endOfMonth;
         currentPeriod.lastPeriod = lastMonth;
         break;
       }
       case AnalysisPeriod.lastMonth: {
         const lastPeriod = new Date(lastMonth);
         lastPeriod.setMonth(lastMonth.getMonth() - 1);
+        lastPeriod.setHours(0, 0, 0, 0);
+
+        const endOfLastMonth = new Date(lastMonth);
+        endOfLastMonth.setDate(0); // Last day of previous month
+        endOfLastMonth.setHours(23, 59, 59, 999);
+
         currentPeriod.startDate = lastMonth;
-        currentPeriod.endDate = thisMonth;
+        currentPeriod.endDate = endOfLastMonth;
         currentPeriod.lastPeriod = lastPeriod;
         break;
       }
       case AnalysisPeriod.thisQuarter: {
+        const endOfQuarter = new Date(thisQuarter);
+        endOfQuarter.setUTCMonth(thisQuarter.getUTCMonth() + 3, 0); // Last day of current quarter
+        endOfQuarter.setHours(23, 59, 59, 999);
+
         currentPeriod.startDate = thisQuarter;
-        currentPeriod.endDate = date;
+        currentPeriod.endDate = endOfQuarter;
         currentPeriod.lastPeriod = lastQuarter;
         break;
       }
       case AnalysisPeriod.lastQuarter: {
         const lastPeriod = new Date(lastQuarter);
         lastPeriod.setUTCMonth(lastQuarter.getUTCMonth() - 3);
+        lastPeriod.setHours(0, 0, 0, 0);
+
+        const endOfLastQuarter = new Date(thisQuarter);
+        endOfLastQuarter.setUTCDate(0); // Last day of previous quarter
+        endOfLastQuarter.setHours(23, 59, 59, 999);
+
         currentPeriod.startDate = lastQuarter;
-        currentPeriod.endDate = thisQuarter;
+        currentPeriod.endDate = endOfLastQuarter;
         currentPeriod.lastPeriod = lastPeriod;
         break;
       }
       case AnalysisPeriod.thisYear: {
+        const endOfYear = new Date(date.getFullYear(), 11, 31); // December 31st
+        endOfYear.setHours(23, 59, 59, 999);
+
         currentPeriod.startDate = thisYear;
-        currentPeriod.endDate = date;
+        currentPeriod.endDate = endOfYear;
         currentPeriod.lastPeriod = lastYear;
         break;
       }
       case AnalysisPeriod.lastYear: {
         const lastPeriod = new Date(lastYear);
         lastPeriod.setFullYear(lastYear.getFullYear() - 1);
+        lastPeriod.setHours(0, 0, 0, 0);
+
+        const endOfLastYear = new Date(lastYear.getFullYear(), 11, 31); // December 31st of last year
+        endOfLastYear.setHours(23, 59, 59, 999);
+
         currentPeriod.startDate = lastYear;
-        currentPeriod.endDate = thisYear;
+        currentPeriod.endDate = endOfLastYear;
         currentPeriod.lastPeriod = lastPeriod;
         break;
       }
       case AnalysisPeriod.last30Days: {
         const lastPeriod = new Date(last30Days);
         lastPeriod.setDate(last30Days.getDate() - 30);
+        lastPeriod.setHours(0, 0, 0, 0);
+
+        const endOf30Days = new Date(date);
+        endOf30Days.setHours(23, 59, 59, 999);
+
         currentPeriod.startDate = last30Days;
-        currentPeriod.endDate = date;
+        currentPeriod.endDate = endOf30Days;
         currentPeriod.lastPeriod = lastPeriod;
         break;
       }
       case AnalysisPeriod.last365Days: {
         const lastPeriod = new Date(last365Days);
         lastPeriod.setDate(last365Days.getDate() - 365);
+        lastPeriod.setHours(0, 0, 0, 0);
+
+        const endOf365Days = new Date(date);
+        endOf365Days.setHours(23, 59, 59, 999);
+
         currentPeriod.startDate = last365Days;
-        currentPeriod.endDate = date;
+        currentPeriod.endDate = endOf365Days;
         currentPeriod.lastPeriod = lastPeriod;
         break;
       }
       case AnalysisPeriod.oldestDate: {
+        const endOfOldest = new Date(date);
+        endOfOldest.setHours(23, 59, 59, 999);
+
         currentPeriod.startDate = oldestDate;
-        currentPeriod.endDate = date;
+        currentPeriod.endDate = endOfOldest;
         currentPeriod.lastPeriod = oldestDate;
         break;
       }
