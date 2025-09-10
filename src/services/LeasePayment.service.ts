@@ -65,7 +65,10 @@ export class LeasePaymentService extends BaseService<LeasePayment> {
     lastPeriod: Date,
     adminId?: string
   ) {
-    const whereFilter = adminId ? { lease: { createdById: adminId } } : null;
+    // const whereFilter = adminId ? { lease: { createdById: adminId } } : null;
+    const whereFilter = adminId
+      ? { lease: { property: { createdById: adminId } } }
+      : null;
 
     const [allPayments, currPayments, prevPayments] = await Promise.all([
       this.getLeasePaymentsForPeriod(whereFilter),
@@ -85,7 +88,7 @@ export class LeasePaymentService extends BaseService<LeasePayment> {
     startDate?: Date,
     endDate?: Date
   ) {
-    const paymentDate =
+    const createdAt =
       startDate && endDate ? Between(startDate, endDate) : undefined;
 
     const payments = await this.findMany({
@@ -93,7 +96,7 @@ export class LeasePaymentService extends BaseService<LeasePayment> {
         ...whereFilter,
         status: PaymentStatus.COMPLETED,
         // type: PaymentType.PAYSTACK,
-        paymentDate,
+        createdAt,
       },
       select: {
         id: true,
