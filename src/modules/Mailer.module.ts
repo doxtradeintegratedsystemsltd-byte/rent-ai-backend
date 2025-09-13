@@ -185,7 +185,7 @@ export class MailerModule {
           subject: 'Lease Payment Reminder',
           html: generateEmail({
             title: 'Lease Payment Reminder',
-            content: `Hi ${name}, <br />This is a reminder that your lease payment status is ${leaseStatus}`,
+            content: `Hi ${name}, <br />This is a reminder that your next lease payment is ${leaseStatus}`,
             additional: `You can make payment on ${theOnlineDashboard}`,
           }),
         },

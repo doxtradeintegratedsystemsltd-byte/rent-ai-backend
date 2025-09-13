@@ -352,8 +352,21 @@ export class LeaseService extends BaseService<Lease> {
         to: currentLease.tenant.email,
         name: currentLease.tenant.firstName,
         amount: payment.amount,
-        nextLeaseEndDate: new Date(payment.lease.endDate).toDateString(),
-        nextLeaseStartDate: new Date(payment.lease.startDate).toDateString(),
+        nextLeaseEndDate: new Date(payment.lease.endDate).toLocaleDateString(
+          'en-US',
+          {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+          }
+        ),
+        nextLeaseStartDate: new Date(
+          payment.lease.startDate
+        ).toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+        }),
         propertyName: currentLease.property.propertyName,
       },
       this.notificationService.createNotificationMailTrigger({
@@ -430,8 +443,22 @@ export class LeaseService extends BaseService<Lease> {
         {
           to: lease.tenant.email,
           name: lease.tenant.firstName,
-          leaseEndDate: new Date(nextLease.endDate).toDateString(),
-          leaseStartDate: new Date(nextLease.startDate).toDateString(),
+          leaseEndDate: new Date(nextLease.endDate).toLocaleDateString(
+            'en-US',
+            {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+            }
+          ),
+          leaseStartDate: new Date(nextLease.startDate).toLocaleDateString(
+            'en-US',
+            {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+            }
+          ),
           propertyName: lease.property.propertyName,
         },
         this.notificationService.createNotificationMailTrigger({
