@@ -20,6 +20,10 @@ export enum NotificationType {
   RENT_PAID = 'rent_paid',
   RENT_OVERDUE = 'rent_overdue',
   PROPERTY_CREATED = 'property_created',
+  // both
+  LEASE_CREATED = 'lease_created',
+  NEXT_LEASE_PERIOD_PAID = 'next_lease_period_paid',
+  NEXT_LEASE_PERIOD_STARTED = 'next_lease_period_started',
 }
 
 export enum NotificationChannel {

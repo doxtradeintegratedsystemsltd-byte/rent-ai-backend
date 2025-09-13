@@ -91,11 +91,13 @@ export class MailerModule {
         to,
         subject: 'Welcome to the Rent Platform',
         html: generateEmail({
-          title: 'Sign in and access your account!',
-          content: `Hi ${name}, <br />We are delighted to inform you that an account has been created for you to access ${theOnlineDashboard}. Through this dashboard, you can view the details of your current lease with use, as well as renew your lease and see additional details`,
-          additional: `Website: ${toLink(WEBSITE_URL)} 
-          <br />Email: ${email}
-          <br />Password: ${password}`,
+          title: 'Welcome! Your account has been created',
+          content: `Hi ${name}, <br />We are delighted to inform you that an account has been created for you to access ${theOnlineDashboard}. Through this dashboard, you can view the details of your current lease with us, as well as renew your lease and see additional details about your tenancy.`,
+          additional: `Your login credentials are provided below:<br /><br />
+          <strong>Website:</strong> ${toLink(WEBSITE_URL)}<br />
+          <strong>Email:</strong> ${email}<br />
+          <strong>Password:</strong> ${password}<br /><br />
+          If you have any questions or need assistance, please don't hesitate to contact us.`,
         }),
       },
       notificationTrigger
@@ -255,47 +257,113 @@ export class MailerModule {
     }
   };
 
-  static sendAccountDeletedMail = async ({ to }: Record<string, string>) => {
+  sendNewLeaseCreatedMail = async (
+    {
+      to,
+      name,
+      propertyName,
+    }: {
+      to: string;
+      name: string;
+      propertyName: string;
+    },
+    notificationTrigger: NotificationFunction
+  ) => {
     try {
-      sendMail({
-        from: fromMail,
-        to,
-        subject: 'Account Deleted',
-        html: generateEmail({
-          title: 'Account Deleted!',
-          content: `Hi, Your account has been deleted from Totsland's Porfolio.<br />`,
-          additional: `You can no longer access your account using your credentials.`,
-        }),
-      });
+      return this.processEmail(
+        {
+          from: fromMail,
+          to,
+          subject: 'New Lease Created',
+          html: generateEmail({
+            title: 'Your Lease is Ready!',
+            content: `Hi ${name}, <br />Great news! Your lease for ${propertyName} has been successfully created.`,
+            additional: `You can now access ${theOnlineDashboard} to view your lease details, payment schedule, and manage your tenancy. If you have any questions, please don't hesitate to contact us.`,
+          }),
+        },
+        notificationTrigger
+      );
     } catch (err) {
       console.log(err);
     }
   };
 
-  static sendNewEventUploadMail = async ({
-    to,
-    name,
-    eventId,
-    childName,
-  }: {
-    to: string;
-    name: string;
-    eventId: string;
-    childName: string;
-  }) => {
+  sendNextLeasePeriodPaymentConfirmationMail = async (
+    {
+      to,
+      name,
+      propertyName,
+      nextLeaseStartDate,
+      nextLeaseEndDate,
+      amount,
+    }: {
+      to: string;
+      name: string;
+      propertyName: string;
+      nextLeaseStartDate: string;
+      nextLeaseEndDate: string;
+      amount: number;
+    },
+    notificationTrigger: NotificationFunction
+  ) => {
     try {
-      sendMail({
-        from: fromMail,
-        to,
-        subject: 'Theme Event Uploaded',
-        html: generateEmail({
-          title: 'New Theme Event Uploaded!',
-          content: `Dear ${name}, <br />We are excited to inform you that a theme featuring your child, ${childName}, has been uploaded to ${linkToParentEvent(
-            eventId
-          )}!`,
-          additional: `To view the photos and details of this event, please log in to your account using the link provided above.`,
-        }),
-      });
+      return this.processEmail(
+        {
+          from: fromMail,
+          to,
+          subject: 'Next Lease Period Payment Confirmed',
+          html: generateEmail({
+            title: 'Payment Confirmed for Next Lease Period!',
+            content: `Hi ${name}, <br />Thank you for your payment! Your payment for the next lease period at ${propertyName} has been successfully processed and confirmed.`,
+            additional: `Payment Details:<br />
+            <strong>Property:</strong> ${propertyName}<br />
+            <strong>Next Lease Period:</strong> ${nextLeaseStartDate} to ${nextLeaseEndDate}<br />
+            <strong>Amount Paid:</strong> ₦${amount.toLocaleString()}<br /><br />
+            Your next lease period is now secured and will automatically become active when your current lease ends. You can view all your lease details and payment history on ${theOnlineDashboard}.<br /><br />
+            If you have any questions, please don't hesitate to contact us.`,
+          }),
+        },
+        notificationTrigger
+      );
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  sendNextLeasePeriodStartedMail = async (
+    {
+      to,
+      name,
+      propertyName,
+      leaseStartDate,
+      leaseEndDate,
+    }: {
+      to: string;
+      name: string;
+      propertyName: string;
+      leaseStartDate: string;
+      leaseEndDate: string;
+    },
+    notificationTrigger: NotificationFunction
+  ) => {
+    try {
+      return this.processEmail(
+        {
+          from: fromMail,
+          to,
+          subject: 'Next Lease Period Has Started',
+          html: generateEmail({
+            title: 'Your Next Lease Period is Now Active!',
+            content: `Hi ${name}, <br />Your next lease period at ${propertyName} has officially started and is now active.`,
+            additional: `Lease Details:<br />
+            <strong>Property:</strong> ${propertyName}<br />
+            <strong>Lease Period:</strong> ${leaseStartDate} to ${leaseEndDate}<br />
+            Your new lease period is now in effect. You can access ${theOnlineDashboard} to view your updated lease details, payment schedule, and manage your tenancy. We wish you a wonderful stay!<br /><br />
+            If you have any questions or need assistance, please don't hesitate to contact us.`,
+          }),
+        },
+        notificationTrigger
+      );
     } catch (err) {
       console.log(err);
     }

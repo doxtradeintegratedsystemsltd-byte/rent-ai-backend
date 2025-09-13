@@ -18,6 +18,7 @@ import { UserType } from '../utils/authUser';
 import { Property } from './Property';
 import { Lease } from './Lease';
 import { Tenant } from './Tenant';
+import { LeasePayment } from './LeasePayment';
 
 @Entity()
 export class Notification {
@@ -76,6 +77,13 @@ export class Notification {
   @ManyToOne(() => Tenant)
   @JoinColumn({ name: 'tenantId' })
   tenant: Tenant;
+
+  @Column({ type: 'text', nullable: true })
+  paymentId: string;
+
+  @ManyToOne(() => LeasePayment)
+  @JoinColumn({ name: 'paymentId' })
+  payment: LeasePayment;
 
   @CreateDateColumn()
   createdAt: Date;

@@ -304,6 +304,7 @@ export class LeaseService extends BaseService<Lease> {
         lease: {
           previousLease: {
             property: true,
+            tenant: true,
           },
         },
       },
@@ -346,6 +347,33 @@ export class LeaseService extends BaseService<Lease> {
       paymentDate: new Date(),
     });
 
+    await this.mailerModule.sendNextLeasePeriodPaymentConfirmationMail(
+      {
+        to: currentLease.tenant.email,
+        name: currentLease.tenant.firstName,
+        amount: payment.amount,
+        nextLeaseEndDate: new Date(payment.lease.endDate).toDateString(),
+        nextLeaseStartDate: new Date(payment.lease.startDate).toDateString(),
+        propertyName: currentLease.property.propertyName,
+      },
+      this.notificationService.createNotificationMailTrigger({
+        userType: UserType.TENANT,
+        payment,
+        property: currentLease.property,
+        lease: payment.lease,
+        tenant: currentLease.tenant,
+        notificationType: NotificationType.NEXT_LEASE_PERIOD_PAID,
+      })
+    );
+
+    this.notificationService.createNextLeasePeriodPaidNotification(
+      currentLease.tenant,
+      currentLease.property,
+      payment.lease,
+      payment.createdBy,
+      payment
+    );
+
     this.updateCurrentLeaseAfterEndDate(currentLease.id);
   }
 
@@ -354,6 +382,9 @@ export class LeaseService extends BaseService<Lease> {
       const lease = await this.findById(leaseId, {
         relations: {
           nextLease: true,
+          property: true,
+          tenant: true,
+          createdBy: true,
         },
       });
 
@@ -394,6 +425,30 @@ export class LeaseService extends BaseService<Lease> {
       });
 
       await this.setUpRentReminders(nextLease);
+
+      await this.mailerModule.sendNextLeasePeriodStartedMail(
+        {
+          to: lease.tenant.email,
+          name: lease.tenant.firstName,
+          leaseEndDate: new Date(nextLease.endDate).toDateString(),
+          leaseStartDate: new Date(nextLease.startDate).toDateString(),
+          propertyName: lease.property.propertyName,
+        },
+        this.notificationService.createNotificationMailTrigger({
+          userType: UserType.TENANT,
+          lease: nextLease,
+          property: lease.property,
+          tenant: lease.tenant,
+          notificationType: NotificationType.NEXT_LEASE_PERIOD_STARTED,
+        })
+      );
+
+      await this.notificationService.createNextLeasePeriodStartedNotification(
+        lease.tenant,
+        lease.property,
+        nextLease,
+        lease.createdBy
+      );
     } catch (error) {
       if (throwError) {
         throw error;

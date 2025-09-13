@@ -223,7 +223,27 @@ export class TenantService extends BaseService<Tenant> {
       currentLease: lease,
     });
 
-    await this.leaseService.setUpRentReminders(lease);
+    this.leaseService.setUpRentReminders(lease);
+
+    this.mailerModule.sendNewLeaseCreatedMail(
+      {
+        to: body.email,
+        name: body.firstName,
+        propertyName: property.propertyName,
+      },
+      this.notificationService.createNotificationMailTrigger({
+        userType: UserType.TENANT,
+        tenant,
+        notificationType: NotificationType.LEASE_CREATED,
+      })
+    );
+
+    this.notificationService.createNewLeaseCreatedNotification(
+      tenant,
+      property,
+      lease,
+      user
+    );
 
     return {
       property: updatedProperty,

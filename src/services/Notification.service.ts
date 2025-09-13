@@ -17,6 +17,7 @@ import { Lease } from '../entities/Lease';
 import { RentStatus } from '../utils/lease';
 import { BadRequestError } from '../configs/error';
 import { NotificationTrigger } from '../interfaces/Notification';
+import { LeasePayment } from '../entities/LeasePayment';
 
 @Service()
 export class NotificationService extends BaseService<Notification> {
@@ -66,6 +67,105 @@ export class NotificationService extends BaseService<Notification> {
     });
 
     return notification;
+  }
+
+  async createNewLeaseCreatedNotification(
+    tenant: Tenant,
+    property: Property,
+    lease: Lease,
+    admin: User
+  ) {
+    let notificationType;
+    notificationType = NotificationType.LEASE_CREATED;
+
+    this.create({
+      tenant,
+      property,
+      lease,
+      notificationType,
+      notificationChannel: NotificationChannel.INTERNAL,
+      userType: UserType.ADMIN,
+      status: NotificationStatus.PENDING,
+      admin,
+    });
+
+    this.create({
+      tenant,
+      property,
+      lease,
+      notificationType,
+      notificationChannel: NotificationChannel.INTERNAL,
+      userType: UserType.TENANT,
+      status: NotificationStatus.PENDING,
+      admin,
+    });
+  }
+
+  async createNextLeasePeriodPaidNotification(
+    tenant: Tenant,
+    property: Property,
+    lease: Lease,
+    admin: User,
+    payment: LeasePayment
+  ) {
+    let notificationType;
+    notificationType = NotificationType.NEXT_LEASE_PERIOD_PAID;
+
+    this.create({
+      tenant,
+      property,
+      lease,
+      payment,
+      notificationType,
+      notificationChannel: NotificationChannel.INTERNAL,
+      userType: UserType.ADMIN,
+      status: NotificationStatus.PENDING,
+      admin,
+    });
+
+    this.create({
+      tenant,
+      property,
+      lease,
+      payment,
+      notificationType,
+      notificationChannel: NotificationChannel.INTERNAL,
+      userType: UserType.TENANT,
+      status: NotificationStatus.PENDING,
+      admin,
+    });
+  }
+
+  async createNextLeasePeriodStartedNotification(
+    tenant: Tenant,
+    property: Property,
+    lease: Lease,
+    admin: User
+  ) {
+    let notificationType;
+    notificationType = NotificationType.NEXT_LEASE_PERIOD_STARTED;
+
+    this.create({
+      tenant,
+      property,
+      lease,
+      notificationType,
+      notificationChannel: NotificationChannel.INTERNAL,
+      userType: UserType.ADMIN,
+      status: NotificationStatus.PENDING,
+      admin,
+    });
+
+    this.create({
+      tenant,
+      property,
+      lease,
+      notificationType,
+      notificationChannel: NotificationChannel.INTERNAL,
+      userType: UserType.TENANT,
+      status: NotificationStatus.PENDING,
+      admin,
+    });
   }
 
   async createRentDueNotification(
@@ -137,6 +237,7 @@ export class NotificationService extends BaseService<Notification> {
         lease: true,
         tenant: true,
         user: true,
+        payment: true,
       },
     });
 
@@ -159,6 +260,7 @@ export class NotificationService extends BaseService<Notification> {
         property: true,
         lease: true,
         tenant: true,
+        payment: true,
       },
     });
 
