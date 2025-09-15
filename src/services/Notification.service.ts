@@ -258,6 +258,14 @@ export class NotificationService extends BaseService<Notification> {
   ) {
     let defaultFilter = this.createDefaultFilter(authUser, channel);
 
+    if (pagination.status) {
+      defaultFilter.status = pagination.status;
+    }
+
+    if (pagination.seen) {
+      defaultFilter.seen = pagination.seen === 'true' ? true : false;
+    }
+
     const notifications = await this.findAllPaginated(pagination, {
       where: {
         ...defaultFilter,

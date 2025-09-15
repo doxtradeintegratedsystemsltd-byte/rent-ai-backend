@@ -38,14 +38,14 @@ export class AuthService extends BaseService<Auth> {
   async createOneTimeSuperAdmin(
     body: AuthValidationTypes['oneTimeSuperAdmin']
   ) {
-    const existingSuperAdmin = await this.userService.findOne({
+    const superAdmins = await this.userService.findMany({
       where: {
         userType: UserType.SUPER_ADMIN,
       },
     });
 
-    if (existingSuperAdmin) {
-      throw new BadRequestError('Superadmin already exists');
+    if (superAdmins.length >= 2) {
+      throw new BadRequestError('Max number of super admins reached');
     }
 
     await this.createUser(body, UserType.SUPER_ADMIN);
