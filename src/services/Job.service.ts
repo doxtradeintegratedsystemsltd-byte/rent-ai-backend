@@ -57,6 +57,7 @@ export class JobService extends BaseService<Job> {
       relations: {
         payment: true,
         nextLease: true,
+        createdBy: true,
         tenant: {
           user: true,
         },
@@ -99,7 +100,8 @@ export class JobService extends BaseService<Job> {
       lease.tenant,
       lease.property,
       lease,
-      rentStatus
+      rentStatus,
+      lease.createdBy
     );
 
     const leaseStatus =

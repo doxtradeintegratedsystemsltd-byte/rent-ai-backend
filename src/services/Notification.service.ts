@@ -172,7 +172,8 @@ export class NotificationService extends BaseService<Notification> {
     tenant: Tenant,
     property: Property,
     lease: Lease,
-    rentStatus: RentStatus
+    rentStatus: RentStatus,
+    admin: User
   ) {
     let notificationType;
     if (rentStatus === RentStatus.DUE) {
@@ -193,6 +194,7 @@ export class NotificationService extends BaseService<Notification> {
       notificationChannel: NotificationChannel.INTERNAL,
       userType: UserType.ADMIN,
       status: NotificationStatus.PENDING,
+      admin,
     });
 
     await this.create({
@@ -203,6 +205,7 @@ export class NotificationService extends BaseService<Notification> {
       notificationChannel: NotificationChannel.INTERNAL,
       userType: UserType.TENANT,
       status: NotificationStatus.PENDING,
+      admin,
     });
 
     return notification;
@@ -218,6 +221,10 @@ export class NotificationService extends BaseService<Notification> {
       defaultFilter.userType = UserType.TENANT;
     } else {
       defaultFilter.userType = UserType.ADMIN;
+
+      if (authUser.userType === UserType.ADMIN) {
+        defaultFilter.adminId = authUser.id;
+      }
     }
 
     return defaultFilter;
