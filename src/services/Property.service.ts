@@ -98,9 +98,25 @@ export class PropertyService extends BaseService<Property> {
         },
         status: PaymentStatus.COMPLETED,
       },
+      relations: {
+        createdBy: true,
+        lease: {
+          property: true,
+          tenant: true,
+        },
+      },
       order: {
         paymentDate: 'DESC',
         createdAt: 'DESC',
+      },
+      select: {
+        createdBy: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          phoneNumber: true,
+        },
       },
     });
 
