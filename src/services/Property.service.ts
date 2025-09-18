@@ -23,7 +23,7 @@ export class PropertyService extends BaseService<Property> {
   }
 
   async getAllProperties(query: PaginationRequest, authUser: User) {
-    const { search, status, adminId } = query;
+    const { search, status, adminId, locationId } = query;
 
     const defaultFilter: FindOptionsWhere<Property> = {};
     const searchFilters: FindOptionsWhere<Property>[] = [];
@@ -36,13 +36,18 @@ export class PropertyService extends BaseService<Property> {
       }
     }
 
+    if (locationId) {
+      defaultFilter.locationId = locationId;
+    }
+
     if (search) {
       const searchItem = ILike(`%${search}%`);
       searchFilters.push(
         { propertyName: searchItem },
         { propertyAddress: searchItem },
         { propertyArea: searchItem },
-        { propertyState: searchItem }
+        { propertyState: searchItem },
+        { location: { name: searchItem } }
       );
     }
 
@@ -79,6 +84,7 @@ export class PropertyService extends BaseService<Property> {
       where,
       relations: {
         createdBy: true,
+        location: true,
         currentLease: {
           tenant: true,
         },
@@ -142,7 +148,11 @@ export class PropertyService extends BaseService<Property> {
   async updateProperty(id: string, body: PropertyValidationTypes['update']) {
     await this.findById(id);
 
-    const updatedProperty = await this.update(id, body);
+    const updatedProperty = await this.update(id, body, {
+      relations: {
+        location: true,
+      },
+    });
 
     return updatedProperty;
   }

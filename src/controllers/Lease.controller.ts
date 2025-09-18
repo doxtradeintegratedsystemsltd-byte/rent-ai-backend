@@ -80,7 +80,9 @@ export class LeaseController {
       const { id } = req.params;
       const data = await this.leaseService.findById(id, {
         relations: {
-          property: true,
+          property: {
+            location: true,
+          },
           payment: true,
           tenant: true,
           createdBy: true,

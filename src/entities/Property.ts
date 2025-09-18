@@ -13,7 +13,7 @@ import {
 } from 'typeorm';
 import { User } from './User';
 import { Lease } from './Lease';
-
+import { Location } from './Location';
 @Entity()
 export class Property {
   @PrimaryGeneratedColumn('uuid')
@@ -53,6 +53,13 @@ export class Property {
   @OneToOne(() => Lease)
   @JoinColumn({ name: 'currentLeaseId' })
   currentLease: Lease;
+
+  @Column({ type: 'text', nullable: true })
+  locationId: string | null;
+
+  @ManyToOne(() => Location)
+  @JoinColumn({ name: 'locationId' })
+  location: Location;
 
   @OneToMany(() => Lease, (lease) => lease.property)
   leases: Lease[];

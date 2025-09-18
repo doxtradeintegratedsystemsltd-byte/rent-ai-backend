@@ -244,6 +244,7 @@ export class LeaseService extends BaseService<Lease> {
         },
       },
       relations: {
+        location: true,
         currentLease: {
           previousLease: true,
           nextLease: {

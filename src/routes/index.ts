@@ -8,11 +8,13 @@ import AuthRoutes from './auth.route';
 import UploadRoutes from './upload.route';
 import NotificationRoutes from './notification.route';
 import JobRoutes from './job.route';
+import LocationRoutes from './location.route';
 const router = express.Router();
 
 router.use('/notifications', NotificationRoutes);
 router.use('/app-error-log', AppErrorLogRoutes);
 router.use('/properties', PropertyRoutes);
+router.use('/locations', LocationRoutes);
 router.use('/tenants', TenantRoutes);
 router.use('/uploads', UploadRoutes);
 router.use('/leases', LeaseRoutes);

@@ -45,6 +45,7 @@ export class PropertyController {
       const property = await this.propertyService.findById(id, {
         relations: {
           createdBy: true,
+          location: true,
           currentLease: {
             tenant: true,
             previousLease: true,
