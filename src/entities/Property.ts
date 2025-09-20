@@ -22,13 +22,13 @@ export class Property {
   @Column({ type: 'text' })
   propertyName: string;
 
-  @Column({ type: 'text' })
+  @Column({ type: 'text', nullable: true })
   propertyState: string;
 
-  @Column({ type: 'text' })
+  @Column({ type: 'text', nullable: true })
   propertyArea: string;
 
-  @Column({ type: 'text' })
+  @Column({ type: 'text', nullable: true })
   propertyAddress: string;
 
   @Column({ type: 'text', nullable: true })
