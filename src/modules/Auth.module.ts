@@ -4,6 +4,7 @@ import { signJwt, signWithSecret, verifyJwtWithSecret } from '../utils/jwt';
 import { generateRandonString } from '../utils/generatePassword';
 import { Service } from 'typedi';
 import { AuthUser } from '../types/Authentication';
+import envConfig from '../configs/envConfig';
 
 @Service()
 export class AuthModule {
@@ -43,7 +44,9 @@ export class AuthModule {
   }
 
   generatePassword() {
-    // return 'password';
+    if (envConfig.TEST_SETUP) {
+      return 'password';
+    }
     return generateRandonString(8, false, true);
   }
 }

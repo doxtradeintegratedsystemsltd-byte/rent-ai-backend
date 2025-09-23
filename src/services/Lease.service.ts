@@ -26,6 +26,7 @@ import { MailerModule } from '../modules/Mailer.module';
 import { NotificationService } from './Notification.service';
 import { NotificationType } from '../utils/notification';
 import { PaginationRequest } from '../types/CustomTypes';
+import envConfig from '../configs/envConfig';
 
 @Service()
 export class LeaseService extends BaseService<Lease> {
@@ -491,14 +492,18 @@ export class LeaseService extends BaseService<Lease> {
 
   async setUpRentReminders(lease: Lease) {
     const twoMonthsBefore = new Date(lease.endDate);
-    // twoMonthsBefore.setMonth(twoMonthsBefore.getMonth() - 2);
-    // remove 20 hours from the date
-    twoMonthsBefore.setHours(twoMonthsBefore.getHours() - 20);
+    if (!envConfig.TEST_SETUP) {
+      twoMonthsBefore.setMonth(twoMonthsBefore.getMonth() - 2);
+    } else {
+      twoMonthsBefore.setHours(twoMonthsBefore.getHours() - 20);
+    }
 
     const twoWeeksBefore = new Date(lease.endDate);
-    // twoWeeksBefore.setDate(twoWeeksBefore.getDate() - 14);
-    // remove 2 hours from the date
-    twoWeeksBefore.setHours(twoWeeksBefore.getHours() - 2);
+    if (!envConfig.TEST_SETUP) {
+      twoWeeksBefore.setDate(twoWeeksBefore.getDate() - 14);
+    } else {
+      twoWeeksBefore.setHours(twoWeeksBefore.getHours() - 2);
+    }
 
     const twoMonthsBeforeObject: JobObject[JobNames.rentDue] = {
       leaseId: lease.id,

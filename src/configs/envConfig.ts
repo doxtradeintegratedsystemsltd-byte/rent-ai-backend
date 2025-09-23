@@ -20,6 +20,7 @@ const envVarsSchema = Joi.object()
     CLOUDINARY_API_KEY: Joi.string().required(),
     CLOUDINARY_API_SECRET: Joi.string().required(),
     RUN_JOBS: Joi.boolean().required(),
+    TEST_SETUP: Joi.boolean().optional().default(false),
     PAYSTACK_SECRET_KEY: Joi.string().required(),
     PAYSTACK_PUBLIC_KEY: Joi.string().required(),
     PAYSTACK_BASE_URL: Joi.string().optional(),
@@ -63,6 +64,7 @@ const envConfig = {
   MAIL_PASSWORD: envVars.MAIL_PASSWORD as string,
   MAIL_NAME: envVars.MAIL_NAME as string,
   MAIL_FROM: envVars.MAIL_FROM as string,
+  TEST_SETUP: envVars.TEST_SETUP as boolean,
 };
 
 export default envConfig;
