@@ -134,6 +134,36 @@ export class MailerModule {
     );
   };
 
+  sendNewSuperAdminMail = async (
+    {
+      to,
+      name,
+      email,
+      password,
+    }: {
+      to: string;
+      name: string;
+      email: string;
+      password: string;
+    },
+    notificationTrigger: NotificationFunction
+  ) => {
+    return this.processEmail(
+      {
+        to,
+        subject: 'Welcome to the Rent Platform',
+        html: generateEmail({
+          title: 'Sign in and access your account!',
+          content: `Hi ${name}, <br />As a super admin, you now have full access to ${theOnlineDashboard} to manage all features. Here are your login details:`,
+          additional: `Website: ${toLink(WEBSITE_URL)} 
+          <br />Email: ${email}
+          <br />Password: ${password}`,
+        }),
+      },
+      notificationTrigger
+    );
+  };
+
   sendPasswordResetLinkMail = async (
     {
       to,

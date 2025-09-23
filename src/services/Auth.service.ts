@@ -160,6 +160,23 @@ export class AuthService extends BaseService<Auth> {
             notificationType: NotificationType.ACCOUNT_CREATED,
           })
         );
+        break;
+      }
+      case UserType.SUPER_ADMIN: {
+        this.mailerModule.sendNewSuperAdminMail(
+          {
+            to: body.email,
+            email: body.email,
+            name: body.firstName,
+            password: password,
+          },
+          this.notificationService.createNotificationMailTrigger({
+            userType,
+            admin: user,
+            notificationType: NotificationType.ACCOUNT_CREATED,
+          })
+        );
+        break;
       }
     }
     return { user, auth, password };
