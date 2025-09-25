@@ -272,7 +272,9 @@ export class NotificationService extends BaseService<Notification> {
       },
       relations: {
         admin: true,
-        property: true,
+        property: {
+          location: true,
+        },
         lease: true,
         tenant: true,
         payment: true,
