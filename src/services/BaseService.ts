@@ -124,7 +124,9 @@ export class BaseService<T extends ObjectLiteral> {
         [sort]: sortOrder || 'DESC',
       };
     } else {
-      order = undefined;
+      order = {
+        createdAt: 'ASC',
+      };
     }
 
     const columnNames = this.repository.metadata.columns
