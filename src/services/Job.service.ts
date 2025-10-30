@@ -89,7 +89,8 @@ export class JobService extends BaseService<Job> {
     }
 
     if (job.type === 'due') {
-      return this.leaseService.updateCurrentLeaseAfterEndDate(lease.id);
+      await this.leaseService.updateCurrentLeaseAfterEndDate(lease.id);
+      return;
     }
 
     await this.leaseService.update(lease.id, {
