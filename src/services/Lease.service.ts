@@ -27,6 +27,7 @@ import { NotificationService } from './Notification.service';
 import { NotificationType } from '../utils/notification';
 import { PaginationRequest } from '../types/CustomTypes';
 import envConfig from '../configs/envConfig';
+import { LessThanOrEqual } from 'typeorm';
 
 @Service()
 export class LeaseService extends BaseService<Lease> {
@@ -198,12 +199,12 @@ export class LeaseService extends BaseService<Lease> {
         new Date(paymentDate!)
       );
 
-      this.update(nextLease.id, {
+      await this.update(nextLease.id, {
         rentStatus: RentStatus.PAID,
         payment: data.leasePayment,
       });
 
-      this.update(lease.id, {
+      await this.update(lease.id, {
         rentStatus: RentStatus.PAID,
       });
 
@@ -478,6 +479,8 @@ export class LeaseService extends BaseService<Lease> {
         nextLease,
         lease.createdBy
       );
+
+      return true;
     } catch (error) {
       if (throwError) {
         throw error;
@@ -486,6 +489,7 @@ export class LeaseService extends BaseService<Lease> {
           'Error while checking for lease end date to update currenty lease',
           error
         );
+        return false;
       }
     }
   }
@@ -547,6 +551,28 @@ export class LeaseService extends BaseService<Lease> {
       },
       dueObject
     );
+  }
+
+  async scriptCheckAllLeasesEndDate() {
+    const leases = await this.findMany({
+      where: {
+        leaseStatus: LeaseStatus.ACTIVE,
+        endDate: LessThanOrEqual(new Date()),
+      },
+    });
+
+    console.log(`Found ${leases.length} leases to check`);
+
+    let results: Array<{ leaseId: string; result: boolean }> = [];
+
+    for (const lease of leases) {
+      const result = await this.updateCurrentLeaseAfterEndDate(lease.id);
+      results.push({ leaseId: lease.id, result });
+    }
+
+    console.log(`All leases end date checked: ${results}`);
+
+    return results;
   }
 
   async sendCustomLeaseNotification(

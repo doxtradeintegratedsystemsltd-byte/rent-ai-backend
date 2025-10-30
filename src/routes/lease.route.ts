@@ -72,6 +72,15 @@ router.post(
   }
 );
 
+router.post(
+  '/script/check-all-leases',
+  verifyToken,
+  checkRole(RoleGroups.superAdmin),
+  (req, res, next) => {
+    controller.checkAllLeasesEndDate(req, res, next);
+  }
+);
+
 router.get(
   '/:id',
   verifyToken,

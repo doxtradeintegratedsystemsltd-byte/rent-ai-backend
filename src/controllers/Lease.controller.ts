@@ -109,6 +109,19 @@ export class LeaseController {
     }
   }
 
+  async checkAllLeasesEndDate(
+    _req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const results = await this.leaseService.scriptCheckAllLeasesEndDate();
+      return successResponse(res, 'All leases end date checked', results);
+    } catch (error) {
+      return next(error);
+    }
+  }
+
   async removeLeaseTenant(req: Request, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
